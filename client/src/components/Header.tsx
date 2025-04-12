@@ -2,32 +2,22 @@ import { Link } from "react-router-dom";
 
 export default function Header() {
   return (
-    <header className="bg-white shadow-md">
-      <nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between h-16">
-          <div className="flex space-x-8">
-            <Link
-              to="/"
-              className="inline-flex items-center px-1 pt-1 text-gray-900 hover:text-blue-600 transition-colors"
-            >
+    <header className="navbar is-white has-shadow">
+      <div className="container">
+        <div className="navbar-brand">
+          <div className="navbar-start">
+            <Link to="/" className="navbar-item">
               Home
             </Link>
-            <Link
-              to="/simulation"
-              className="inline-flex items-center px-1 pt-1 text-gray-900 hover:text-blue-600 transition-colors"
-            >
+            <Link to="/simulation" className="navbar-item">
               Simulation
             </Link>
-            <Link
-              to="/scenario-feedback"
-              className="inline-flex items-center px-1 pt-1 text-gray-900 hover:text-blue-600 transition-colors"
-            >
+            <Link to="/scenario-feedback" className="navbar-item">
               Scenario Feedback
             </Link>
           </div>
         </div>
-      </nav>
-      <hr />
+      </div>
     </header>
   );
 }
