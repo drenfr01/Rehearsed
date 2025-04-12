@@ -3,11 +3,10 @@ import ChatOverview from "../components/ChatOverview";
 import ChatInput from "../components/ChatInput";
 
 import { useState } from "react";
-import { Message } from "../interfaces/MessageInterface";
+import { Message, ResponseMessage } from "../interfaces/MessageInterface";
 import { usePostMessageMutation, useFetchMessagesQuery } from "../store";
 
 export default function Simulation() {
-  const [messages, setMessages] = useState<Message[]>([]);
   const [postMessage, results] = usePostMessageMutation();
   const { data, error, isFetching } = useFetchMessagesQuery("1");
 
@@ -19,21 +18,15 @@ export default function Simulation() {
   } else {
     message_content = (
       <div>
-        {data?.map((message: Message) => (
-          <div key={message.userId}>{message.message}</div>
+        {data?.map((message: ResponseMessage) => (
+          <div key={message.message_id}>{message.message}</div>
         ))}
       </div>
     );
   }
 
   // TODO: add in loading spinner
-  let content = (
-    <ChatInput
-      messages={messages}
-      postMessage={postMessage}
-      setMessages={setMessages}
-    />
-  );
+  let content = <ChatInput postMessage={postMessage} />;
   if (results.isLoading) {
     content = <div>Loading...</div>;
   }

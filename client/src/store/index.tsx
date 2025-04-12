@@ -10,7 +10,7 @@ const store = configureStore({
     getDefaultMiddleware().concat(conversationAPI.middleware),
 });
 
-// window.store = store;
+window.store = store;
 
 setupListeners(store.dispatch);
 

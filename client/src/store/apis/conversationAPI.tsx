@@ -9,7 +9,7 @@ const conversationAPI = createApi({
       postMessage: builder.mutation({
         query: (message: Message) => {
           return {
-            url: "/message",
+            url: "/send_message",
             method: "POST",
             body: {
               message: message.message,

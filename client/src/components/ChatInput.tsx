@@ -1,23 +1,15 @@
 import { useState } from "react";
-import { Message } from "../interfaces/MessageInterface";
 
 interface ChatInputProps {
-  messages: Message[];
   postMessage: any;
-  setMessages: React.Dispatch<React.SetStateAction<Message[]>>;
 }
 
-export default function ChatInput({
-  messages,
-  postMessage,
-  setMessages,
-}: ChatInputProps) {
+export default function ChatInput({ postMessage }: ChatInputProps) {
   const [message, setMessage] = useState("");
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    postMessage(message);
-    setMessages([...messages, { message, userId: "1" }]);
+    postMessage({ message, userId: "1" });
   };
 
   return (
