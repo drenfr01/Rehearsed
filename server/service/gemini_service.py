@@ -10,6 +10,26 @@ class GeminiService:
         self.client = genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
         # TODO: make this a persistent database
         self.temp_client_messages: dict[str, list[Message]] = {}
+        self.populate_sample_data()
+
+    def populate_sample_data(self, user_id: int = 1):
+        self.temp_client_messages[user_id] = [
+            Message(
+                message="Hello, welcome to the Simulation App!",
+                role="user",
+            )
+        ]
+
+    def fetch_user_messages(self, user_id: int) -> list[Message]:
+        """Fetches the messages for a user from the client messages
+
+        Args:
+            user_id: The user id to fetch the messages for
+
+        Returns:
+            The messages for the user
+        """
+        return self.temp_client_messages.get(user_id, [])
 
     def get_gemini_message(
         self, message: str, user_id: str, model_name: str = "gemini-2.0-flash"

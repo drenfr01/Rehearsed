@@ -18,9 +18,21 @@ const conversationAPI = createApi({
           };
         },
       }),
+      fetchMessages: builder.query({
+        query: (user: string) => {
+          return {
+            url: "/messages",
+            params: {
+              user_id: user,
+            },
+            method: "GET",
+          };
+        },
+      }),
     };
   },
 });
 
-export const { usePostMessageMutation } = conversationAPI;
+export const { usePostMessageMutation, useFetchMessagesQuery } =
+  conversationAPI;
 export { conversationAPI };

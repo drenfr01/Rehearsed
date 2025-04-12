@@ -10,7 +10,12 @@ const store = configureStore({
     getDefaultMiddleware().concat(conversationAPI.middleware),
 });
 
+// window.store = store;
+
 setupListeners(store.dispatch);
 
 export default store;
-export { usePostMessageMutation } from "./apis/conversationAPI";
+export {
+  usePostMessageMutation,
+  useFetchMessagesQuery,
+} from "./apis/conversationAPI";
