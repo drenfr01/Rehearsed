@@ -1,6 +1,6 @@
 export interface Message {
   message: string;
-  userId: string;
+  userId: number;
 }
 
 export interface ResponseMessage {

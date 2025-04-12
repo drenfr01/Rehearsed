@@ -62,6 +62,8 @@ class GeminiService:
                 ],
             ),
         )
-        self.temp_client_messages[user_id].append(Message(message=message, role="user"))
-
+        self.temp_client_messages[user_id].append(
+            Message(message=response.text, role="system")
+        )
+        print(self.temp_client_messages[user_id])
         return response.text

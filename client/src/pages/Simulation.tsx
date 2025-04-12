@@ -3,7 +3,7 @@ import ChatOverview from "../components/ChatOverview";
 import ChatInput from "../components/ChatInput";
 
 import { useState } from "react";
-import { Message, ResponseMessage } from "../interfaces/MessageInterface";
+import { ResponseMessage } from "../interfaces/MessageInterface";
 import { usePostMessageMutation, useFetchMessagesQuery } from "../store";
 
 export default function Simulation() {

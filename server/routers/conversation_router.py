@@ -11,7 +11,7 @@ router = APIRouter(
 # TODO: make userID into a session variable
 class GeminiMessage(BaseModel):
     message: str
-    user_id: str
+    user_id: int
 
 
 @router.post("/send_message")
