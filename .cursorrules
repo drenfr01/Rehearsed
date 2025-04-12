@@ -1,0 +1,15 @@
+{
+  "general": {
+    "language": "typescript",
+    "formatOnSave": true
+  },
+  "typescript": {
+    "strict": true,
+    "completions": {
+      "imports": {
+        "preferNamed": true,
+        "preferConst": true
+      }
+    }
+  }
+}

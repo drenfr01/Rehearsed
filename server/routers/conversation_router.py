@@ -8,9 +8,7 @@ router = APIRouter(
 )
 
 
-
 class GeminiMessage(BaseModel):
-    prompt: str
     message: str
 
 
