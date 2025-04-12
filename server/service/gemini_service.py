@@ -1,5 +1,4 @@
 import os
-import uuid
 
 from google import genai
 from google.genai import types
@@ -17,7 +16,7 @@ class GeminiService:
         self.temp_client_messages[user_id] = [
             Message(
                 message="Hello, welcome to the Simulation App!",
-                role="user",
+                role="system",
             )
         ]
 

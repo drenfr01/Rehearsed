@@ -1,8 +1,8 @@
 export default function ChatOverview() {
   return (
     <div>
-      <p className="title"> Hero Title</p>
-      <p className="subtitle">Hero Subtitle</p>
+      <p className="title"> Simulation</p>
+      <p className="subtitle">By Erin Barno</p>
     </div>
   );
 }

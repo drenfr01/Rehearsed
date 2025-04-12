@@ -2,7 +2,6 @@ import ChatMessage from "../components/ChatMessage";
 import ChatOverview from "../components/ChatOverview";
 import ChatInput from "../components/ChatInput";
 
-import { useState } from "react";
 import { ResponseMessage } from "../interfaces/MessageInterface";
 import { usePostMessageMutation, useFetchMessagesQuery } from "../store";
 
@@ -19,7 +18,7 @@ export default function Simulation() {
     message_content = (
       <div>
         {data?.map((message: ResponseMessage) => (
-          <div key={message.message_id}>{message.message}</div>
+          <ChatMessage key={message.message_id} message={message} />
         ))}
       </div>
     );
