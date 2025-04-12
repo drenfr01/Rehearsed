@@ -1,5 +1,6 @@
 import { ResponseMessage } from "../interfaces/MessageInterface";
 import { FaPerson, FaRobot } from "react-icons/fa6";
+import ReactMarkdown from "react-markdown";
 
 export default function ChatMessage({ message }: { message: ResponseMessage }) {
   const isUser = message.role === "user";
@@ -47,7 +48,7 @@ export default function ChatMessage({ message }: { message: ResponseMessage }) {
           </div>
           <div className="column">
             <p className={`${isUser ? "has-text-left" : "has-text-right"}`}>
-              {message.message}
+              <ReactMarkdown>{message.message}</ReactMarkdown>
             </p>
           </div>
         </div>
