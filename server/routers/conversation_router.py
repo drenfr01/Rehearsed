@@ -10,8 +10,11 @@ router = APIRouter(
 
 class GeminiMessage(BaseModel):
     message: str
+    user_id: str
 
 
 @router.post("/message")
 async def get_gemini_message(request: Request, gemini_message: GeminiMessage):
-    return request.state.gemini_service.get_gemini_message(gemini_message.message)
+    return request.state.gemini_service.get_gemini_message(
+        message=gemini_message.message, user_id=gemini_message.user_id
+    )
