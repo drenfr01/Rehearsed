@@ -1,7 +1,10 @@
 import { useState } from "react";
+import { conversationAPI } from "../store/apis/conversationAPI";
 
 interface ChatInputProps {
-  postMessage: any;
+  postMessage: ReturnType<
+    typeof conversationAPI.endpoints.postMessage.useMutation
+  >[0];
 }
 
 export default function ChatInput({ postMessage }: ChatInputProps) {
@@ -9,7 +12,7 @@ export default function ChatInput({ postMessage }: ChatInputProps) {
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    postMessage({ message, userId: "1" });
+    postMessage({ message, userId: 1 });
   };
 
   return (
