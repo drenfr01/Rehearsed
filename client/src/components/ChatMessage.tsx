@@ -47,9 +47,9 @@ export default function ChatMessage({ message }: { message: ResponseMessage }) {
             </span>
           </div>
           <div className="column">
-            <p className={`${isUser ? "has-text-left" : "has-text-right"}`}>
+            <div className={`${isUser ? "has-text-left" : "has-text-right"}`}>
               <ReactMarkdown>{message.message}</ReactMarkdown>
-            </p>
+            </div>
           </div>
         </div>
       </article>

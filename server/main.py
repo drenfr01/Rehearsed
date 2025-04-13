@@ -6,11 +6,15 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from server.routers import conversation_router
 from server.service.gemini_service import GeminiService
+from server.service.scenario_service import ScenarioService
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    gemini_service = GeminiService()
+    # Note: would love to use Depends here with dependency injection
+    # but it only works on route parameters, not lifespan
+    scenario_service = ScenarioService()
+    gemini_service = GeminiService(scenario_service)
     yield {"gemini_service": gemini_service}
 
 
