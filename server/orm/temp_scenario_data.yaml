@@ -39,10 +39,12 @@ scenario_1:
 scenario_2:
   name: "Negative Numbers"
   description: "This scenario is about negative numbers"
-  prompt: "This scenario is about systems of linear equations."
   overview: "Negative numbers blah blah"
+  initial_prompt: "This scenario is about systems of linear equations."
+  system_instructions: "This scenario is about systems of linear equations"
 scenario_3:
   name: "Fractals"
   description: "This scenario is about fractals"
-  prompt: "This scenario is about fractals"
   overview: "Fractals woohoo!"
+  initial_prompt: "This scenario is about fractals"
+  system_instructions: "This scenario is about fractals"

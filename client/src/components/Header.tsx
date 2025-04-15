@@ -7,7 +7,10 @@ export default function Header() {
         <div className="navbar-brand">
           <div className="navbar-start">
             <Link to="/" className="navbar-item">
-              Home
+              Scenario Selection
+            </Link>
+            <Link to="/scenario-introduction" className="navbar-item">
+              Scenario Introduction
             </Link>
             <Link to="/simulation" className="navbar-item">
               Simulation

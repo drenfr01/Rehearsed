@@ -1,12 +1,12 @@
-from server.models.scenario_data import ScenarioData
+from server.models.scenario_data import ScenarioData, ScenarioDataList
 import yaml
 
 
-# TODO: Move to ORM layer
+# TODO: Move to ORM layer, eventually this will be DB call
 def load_scenario_data(
     file_path: str = "orm/temp_scenario_data.yaml",
     scenario_id: str = "scenario_1",
-) -> ScenarioData:
+) -> dict[str, ScenarioData]:
     """Temporary function that loads yaml files, eventually will be a DB call
 
     Args:
@@ -17,19 +17,20 @@ def load_scenario_data(
     """
     with open(file_path, "r") as f:
         data = yaml.safe_load(f)
-    return ScenarioData(**data[scenario_id])
+    return data
 
 
 class ScenarioService:
     def __init__(self, default_scenario_id: str = "scenario_1"):
-        self.scenario_data = load_scenario_data()
+        self.data = load_scenario_data()
+        self.current_scenario_data = ScenarioData(**self.data[default_scenario_id])
         self.scenario_id = default_scenario_id
 
-    def list_scenarios(self) -> list[str]:
+    def get_all_scenario_data(self) -> ScenarioDataList:
         """
         Returns a list of all scenario ids
         """
-        return list(self.scenario_data.keys())
+        return ScenarioDataList(scenarios=self.data)
 
     def get_scenario_data(self) -> ScenarioData:
         """
@@ -38,7 +39,7 @@ class ScenarioService:
         Returns:
             The scenario data for the current scenario
         """
-        return self.scenario_data
+        return self.current_scenario_data
 
     def set_scenario_data(self, scenario_id: str) -> None:
         """
@@ -47,4 +48,5 @@ class ScenarioService:
         Args:
             scenario_id: The id of the scenario to set
         """
-        self.scenario_data = self.scenario_data[scenario_id]
+        self.current_scenario_data = self.data[scenario_id]
+        self.scenario_id = scenario_id

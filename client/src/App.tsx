@@ -4,6 +4,7 @@ import Root from "./pages/Root";
 import Simulation from "./pages/Simulation";
 import ScenarioIntroduction from "./pages/ScenarioIntroduction";
 import ScenarioFeedback from "./pages/ScenarioFeedback";
+import ScenarioSelection from "./pages/ScenarioSelection";
 
 const router = createBrowserRouter([
   {
@@ -12,6 +13,10 @@ const router = createBrowserRouter([
     children: [
       {
         index: true,
+        element: <ScenarioSelection />,
+      },
+      {
+        path: "scenario-introduction",
         element: <ScenarioIntroduction />,
       },
       {
