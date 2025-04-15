@@ -27,4 +27,5 @@ export {
 export {
   useSetScenarioMutation,
   useFetchScenariosQuery,
+  useFetchCurrentScenarioQuery,
 } from "./apis/scenarioAPI";

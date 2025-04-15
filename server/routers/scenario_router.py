@@ -17,8 +17,8 @@ async def get_all_scenarios(request: Request) -> ScenarioDataList:
     return request.state.scenario_service.get_all_scenario_data()
 
 
-@router.get("/get-scenario-data")
-async def get_scenario_data(request: Request) -> ScenarioData:
+@router.get("/get-current-scenario")
+async def get_current_scenario(request: Request) -> ScenarioData:
     return request.state.scenario_service.get_scenario_data()
 
 

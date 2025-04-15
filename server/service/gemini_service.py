@@ -14,7 +14,7 @@ class GeminiService:
         self.client = genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
         # gemini-2.5-pro-exp-03-25
         # gemini-2.0-flash
-        self.model_name = "gemini-2.0-flash"
+        self.model_name = "gemini-2.5-pro-exp-03-25"
 
         self.scenario_service = scenario_service
         self.populate_initial_data()

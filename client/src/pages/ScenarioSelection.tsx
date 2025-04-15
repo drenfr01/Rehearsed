@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useFetchScenariosQuery, useSetScenarioMutation } from "../store";
+import { useNavigate } from "react-router-dom";
 
 interface Scenario {
   name: string;
@@ -18,6 +19,7 @@ export default function ScenarioSelection() {
   const [description, setDescription] = useState("");
   const [setScenario] = useSetScenarioMutation();
   const { data, error, isFetching } = useFetchScenariosQuery("");
+  const navigate = useNavigate();
 
   const handleScenarioChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const scenarioId = e.target.value;
@@ -33,6 +35,7 @@ export default function ScenarioSelection() {
     e.preventDefault();
     if (selectedScenario) {
       setScenario(selectedScenario);
+      navigate(`/scenario-introduction`);
     } else {
       console.error("No scenario selected");
     }
