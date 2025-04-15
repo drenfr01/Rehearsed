@@ -7,12 +7,17 @@ export default function ScenarioFeedback() {
   });
   let content;
   if (results.isLoading) {
-    content = <div>Loading...</div>;
+    content = <div className="has-text-centered">Loading...</div>;
   } else if (results.error) {
-    content = <div>Error</div>;
+    content = <div className="has-text-danger">Error</div>;
   } else {
     console.log(results);
     content = <Markdown>{results.data?.feedback}</Markdown>;
   }
-  return <div>{content}</div>;
+  return (
+    <div className="box">
+      <div className="label is-size-5 mb-4">Simulation Feedback</div>
+      {content}
+    </div>
+  );
 }
