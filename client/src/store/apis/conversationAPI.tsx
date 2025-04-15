@@ -1,5 +1,8 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
-import { Message } from "../../interfaces/MessageInterface";
+import {
+  Message,
+  SummarizeFeedbackRequest,
+} from "../../interfaces/MessageInterface";
 
 const conversationAPI = createApi({
   reducerPath: "conversation",
@@ -33,10 +36,24 @@ const conversationAPI = createApi({
           };
         },
       }),
+      provideUserFeedback: builder.mutation({
+        query: (summarizeFeedbackRequest: SummarizeFeedbackRequest) => {
+          return {
+            url: "/provide_user_feedback",
+            method: "POST",
+            body: {
+              user_id: summarizeFeedbackRequest.userId,
+            },
+          };
+        },
+      }),
     };
   },
 });
 
-export const { usePostMessageMutation, useFetchMessagesQuery } =
-  conversationAPI;
+export const {
+  usePostMessageMutation,
+  useFetchMessagesQuery,
+  useProvideUserFeedbackMutation,
+} = conversationAPI;
 export { conversationAPI };

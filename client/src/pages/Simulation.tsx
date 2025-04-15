@@ -3,11 +3,18 @@ import ChatOverview from "../components/ChatOverview";
 import ChatInput from "../components/ChatInput";
 
 import { ResponseMessage } from "../interfaces/MessageInterface";
-import { usePostMessageMutation, useFetchMessagesQuery } from "../store";
+import {
+  usePostMessageMutation,
+  useFetchMessagesQuery,
+  useProvideUserFeedbackMutation,
+} from "../store";
 
 export default function Simulation() {
   const [postMessage, results] = usePostMessageMutation();
   const { data, error, isFetching } = useFetchMessagesQuery("1");
+  const [provideUserFeedback] = useProvideUserFeedbackMutation({
+    fixedCacheKey: "provideUserFeedback",
+  });
 
   let message_content;
   if (isFetching) {
@@ -25,7 +32,12 @@ export default function Simulation() {
   }
 
   // TODO: add in loading spinner
-  let content = <ChatInput postMessage={postMessage} />;
+  let content = (
+    <ChatInput
+      postMessage={postMessage}
+      provideUserFeedback={provideUserFeedback}
+    />
+  );
   if (results.isLoading) {
     content = <div>Loading...</div>;
   }

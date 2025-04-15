@@ -9,3 +9,11 @@ export interface ResponseMessage {
   message_id: string | null;
   role: "user" | "system";
 }
+
+export interface SummarizeFeedbackRequest {
+  userId: string;
+}
+
+export interface SummarizeFeedbackResponse {
+  feedback: string;
+}

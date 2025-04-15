@@ -22,6 +22,7 @@ export default store;
 export {
   usePostMessageMutation,
   useFetchMessagesQuery,
+  useProvideUserFeedbackMutation,
 } from "./apis/conversationAPI";
 
 export {
