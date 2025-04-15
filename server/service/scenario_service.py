@@ -48,5 +48,6 @@ class ScenarioService:
         Args:
             scenario_id: The id of the scenario to set
         """
-        self.current_scenario_data = self.data[scenario_id]
+        print("Setting scenario data for", scenario_id)
+        self.current_scenario_data = ScenarioData(**self.data[scenario_id])
         self.scenario_id = scenario_id

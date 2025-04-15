@@ -8,7 +8,7 @@ export default function ChatMessage({ message }: { message: ResponseMessage }) {
   let iconContent;
   if (isUser) {
     iconContent = (
-      <div className="media-right">
+      <div className="media-left">
         <figure className="image is-64x64">
           <FaPerson size={48} />
         </figure>
@@ -16,7 +16,7 @@ export default function ChatMessage({ message }: { message: ResponseMessage }) {
     );
   } else {
     iconContent = (
-      <div className="media-left">
+      <div className="media-right">
         <figure className="image is-64x64">
           <FaRobot size={48} />
         </figure>
@@ -32,11 +32,7 @@ export default function ChatMessage({ message }: { message: ResponseMessage }) {
     >
       <article className="media">
         {iconContent}
-        <div
-          className={`columns is-vcentered ${
-            isUser ? "" : "is-flex-direction-row-reverse"
-          }`}
-        >
+        <div className="columns is-vcentered">
           <div className="column is-narrow">
             <span
               className={`icon is-large ${
@@ -47,7 +43,7 @@ export default function ChatMessage({ message }: { message: ResponseMessage }) {
             </span>
           </div>
           <div className="column">
-            <div className={`${isUser ? "has-text-left" : "has-text-right"}`}>
+            <div className="has-text-left">
               <ReactMarkdown>{message.message}</ReactMarkdown>
             </div>
           </div>
