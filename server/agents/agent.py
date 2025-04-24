@@ -8,6 +8,7 @@ from yaml import safe_load
 
 ROOT_AGENT_MODEL = "gemini-2.5-pro-exp-03-25"
 STUDENT_AGENT_MODEL = "gemini-2.5-flash-preview-04-17"
+FEEDBACK_AGENT_MODEL = "gemini-2.5-pro-exp-03-25"
 
 # TODO: delete this and change it because it was in Github
 GEMINI_API_KEY = "AIzaSyD17WtpBvb5JXbtfl_jdlaoKDaJWGh8dDk"
@@ -33,6 +34,22 @@ def load_student_agents(file_path: str = "agents/student_agents.yaml") -> list[A
     return student_agents
 
 
+# TODO: make this a deterministically run agent with appropriate session
+def load_feedback_agent(file_path: str = "agents/feedback_agent.yaml") -> list[Agent]:
+    print(f"Loading feedback agent from {file_path}")
+    with open(file_path, "r") as f:
+        feedback_agent_yaml = safe_load(f)
+
+    return [
+        Agent(
+            model=FEEDBACK_AGENT_MODEL,
+            name=feedback_agent_yaml["name"],
+            instruction=feedback_agent_yaml["instruction"],
+            description=feedback_agent_yaml["description"],
+        )
+    ]
+
+
 def load_root_agent(file_path: str = "agents/root_agent.yaml") -> Agent:
     print(f"Loading root agent from {file_path}")
     with open(file_path, "r") as f:
@@ -43,7 +60,7 @@ def load_root_agent(file_path: str = "agents/root_agent.yaml") -> Agent:
         name=root_agent_yaml["name"],
         instruction=root_agent_yaml["instruction"],
         description=root_agent_yaml["description"],
-        sub_agents=load_student_agents(),
+        sub_agents=load_student_agents() + load_feedback_agent(),
     )
 
 
