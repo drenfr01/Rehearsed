@@ -4,46 +4,50 @@ from google.adk.sessions import InMemorySessionService
 from google.adk.runners import Runner
 from google.genai import types
 
-MODEL = "gemini-2.5-pro-exp-03-25"
+from yaml import safe_load
 
-# TODO: delete this
+ROOT_AGENT_MODEL = "gemini-2.5-pro-exp-03-25"
+STUDENT_AGENT_MODEL = "gemini-2.5-flash-preview-04-17"
+
+# TODO: delete this and change it because it was in Github
 GEMINI_API_KEY = "AIzaSyD17WtpBvb5JXbtfl_jdlaoKDaJWGh8dDk"
-most_conditions_student = Agent(
-    model="gemini-2.5-flash-preview-04-17",
-    name="most_conditions_student",
-    instruction="This student likes finding solutions to tasks that are novel. This student does not only look for the right or most efficent solution, but likes exploring multiple ways to solve a problem. This student solves the problem correctly albeit using creative approaches.",
-    description="Have this student always speak first.",
-)
+# Has to be here because the ADK CLI needs to find it
 
-medium_conditions_student = Agent(
-    model="gemini-2.5-flash-preview-04-17",
-    name="medium_conditions_student",
-    instruction="This student likes finding the most efficient solution, but often lands on a solution that, while more efficient than others, is not the most efficient or the traditionally correct solution. This student solves the problem correctly albeit not finding the most traditional solution.",
-    description="Have this student speak when teacher asks for a soultion that just focuses on the y-intercept.",
-)
 
-minimum_conditions_student = Agent(
-    model="gemini-2.5-flash-preview-04-17",
-    name="minimum_conditions_student",
-    instruction="This student almost always finds the most efficient solution, and is able to explain it. They do not see the need to explore beyond what is minially viable and correct, and need explination as to why other strategies are useful.",
-    description="Have this student speak when the teacher asks for the most efficient strategy.",
-)
+def load_student_agents(file_path: str = "agents/student_agents.yaml") -> list[Agent]:
+    print(f"Loading student agents from {file_path}")
+    with open(file_path, "r") as f:
+        student_agents_yaml = safe_load(f)
 
-root_agent = Agent(
-    model=MODEL,
-    name="teacher_agent",
-    instruction="Based on the information that the user provides, select the student to respond that forces the user to connect the procedural and conceptual background of the math idea"
-    "You have three specialized sub-agents:"
-    "1. most_conditions_student: Delegate to this student when the user asks for a broad solution."
-    "2. medium_conditions_student: Delegate to this student when the user asks for someone to correct the Most Conditions, or to add an additional solution."
-    "3. minimum_conditions_student: Delegate to this student when the user asks for the minimum requirements to solve this task.",
-    description="Use the three specialized sub-agents to respond to the user who is acting as an 8th grade math teacher",
-    sub_agents=[
-        most_conditions_student,
-        medium_conditions_student,
-        minimum_conditions_student,
-    ],
-)
+    student_agents = []
+    for student_agent in student_agents_yaml:
+        student_agents.append(
+            Agent(
+                model=STUDENT_AGENT_MODEL,
+                name=student_agent["name"],
+                instruction=student_agent["instruction"],
+                description=student_agent["description"],
+            )
+        )
+
+    return student_agents
+
+
+def load_root_agent(file_path: str = "agents/root_agent.yaml") -> Agent:
+    print(f"Loading root agent from {file_path}")
+    with open(file_path, "r") as f:
+        root_agent_yaml = safe_load(f)
+
+    return Agent(
+        model=ROOT_AGENT_MODEL,
+        name=root_agent_yaml["name"],
+        instruction=root_agent_yaml["instruction"],
+        description=root_agent_yaml["description"],
+        sub_agents=load_student_agents(),
+    )
+
+
+root_agent = load_root_agent()
 
 
 async def call_agent_async(query: str, runner: Runner, user_id: str, session_id: str):
@@ -91,7 +95,7 @@ async def run_team_conversation():
     SESSION_ID = "session_001_agent_team"  # Using a fixed ID for simplicity
 
     # Create the specific session where the conversation will happen
-    session = session_service.create_session(
+    _ = session_service.create_session(
         app_name=APP_NAME, user_id=USER_ID, session_id=SESSION_ID
     )
     print(
@@ -102,6 +106,7 @@ async def run_team_conversation():
     # Use the determined variable name
 
     # Create a runner specific to this agent team test
+    print(f"Root agent: {root_agent}")
     runner_agent_team = Runner(
         agent=root_agent,  # Use the root agent object
         app_name=APP_NAME,  # Use the specific app name
@@ -132,4 +137,5 @@ async def run_team_conversation():
 
 
 def main():
+    print("Starting main")
     asyncio.run(run_team_conversation())
