@@ -1,16 +1,17 @@
-import asyncio
+"""Also used for the Agent ADK CLI"""
+
 from google.adk.agents import Agent
-from google.adk.sessions import InMemorySessionService
 from google.adk.runners import Runner
 from google.genai import types
 
 from yaml import safe_load
 
-# Streaming not yet supported for 2.5 models
+# Streaming not yet supported for 2.5 models, defaulting to models used for
+# adk web and HTTP commands
 # TODO: change to 2.5-pro-exp-03-25 or 2.5-flash-preview-04-17
-ROOT_AGENT_MODEL = "gemini-2.0-flash-exp"
-STUDENT_AGENT_MODEL = "gemini-2.0-flash-exp"
-FEEDBACK_AGENT_MODEL = "gemini-2.0-flash-exp"
+ROOT_AGENT_MODEL = "gemini-2.5-pro-exp-03-25"
+STUDENT_AGENT_MODEL = "gemini-2.5-flash-preview-04-17"
+FEEDBACK_AGENT_MODEL = "gemini-2.5-flash-preview-04-17"
 
 # TODO: delete this and change it because it was in Github
 GEMINI_API_KEY = "AIzaSyD17WtpBvb5JXbtfl_jdlaoKDaJWGh8dDk"
@@ -66,6 +67,7 @@ def load_root_agent(file_path: str = "agents/root_agent.yaml") -> Agent:
     )
 
 
+# Note: this has to be called root_agent for ADK CLI to work
 root_agent = load_root_agent()
 
 
@@ -77,6 +79,8 @@ async def call_agent_async(query: str, runner: Runner, user_id: str, session_id:
     content = types.Content(role="user", parts=[types.Part(text=query)])
 
     final_response_text = "Agent did not produce a final response."  # Default
+
+    print(f"Running root agent with model {ROOT_AGENT_MODEL}")
 
     # Key Concept: run_async executes the agent logic and yields Events.
     # We iterate through events to find the final answer.
@@ -101,60 +105,4 @@ async def call_agent_async(query: str, runner: Runner, user_id: str, session_id:
             break  # Stop processing events once the final response is found
 
     print(f"<<< Agent Response: {final_response_text}")
-
-
-async def run_team_conversation():
-    print("\n--- Testing Agent Team Delegation ---")
-    # InMemorySessionService is simple, non-persistent storage for this tutorial.
-    session_service = InMemorySessionService()
-
-    # Define constants for identifying the interaction context
-    APP_NAME = "initial_tutorial_agent"
-    USER_ID = "user_1_agent_team"
-    SESSION_ID = "session_001_agent_team"  # Using a fixed ID for simplicity
-
-    # Create the specific session where the conversation will happen
-    _ = session_service.create_session(
-        app_name=APP_NAME, user_id=USER_ID, session_id=SESSION_ID
-    )
-    print(
-        f"Session created: App='{APP_NAME}', User='{USER_ID}', Session='{SESSION_ID}'"
-    )
-
-    # --- Get the actual root agent object ---
-    # Use the determined variable name
-
-    # Create a runner specific to this agent team test
-    print(f"Root agent: {root_agent}")
-    runner_agent_team = Runner(
-        agent=root_agent,  # Use the root agent object
-        app_name=APP_NAME,  # Use the specific app name
-        session_service=session_service,  # Use the specific session service
-    )
-    # Corrected print statement to show the actual root agent's name
-    print(f"Runner created for agent '{root_agent.name}'.")
-
-    # Always interact via the root agent's runner, passing the correct IDs
-    await call_agent_async(
-        query="Hello there!",
-        runner=runner_agent_team,
-        user_id=USER_ID,
-        session_id=SESSION_ID,
-    )
-    await call_agent_async(
-        query="What is the weather in New York?",
-        runner=runner_agent_team,
-        user_id=USER_ID,
-        session_id=SESSION_ID,
-    )
-    await call_agent_async(
-        query="Thanks, bye!",
-        runner=runner_agent_team,
-        user_id=USER_ID,
-        session_id=SESSION_ID,
-    )
-
-
-def main():
-    print("Starting main")
-    asyncio.run(run_team_conversation())
+    return final_response_text
