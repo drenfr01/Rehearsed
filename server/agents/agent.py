@@ -6,9 +6,11 @@ from google.genai import types
 
 from yaml import safe_load
 
-ROOT_AGENT_MODEL = "gemini-2.5-pro-exp-03-25"
-STUDENT_AGENT_MODEL = "gemini-2.5-flash-preview-04-17"
-FEEDBACK_AGENT_MODEL = "gemini-2.5-pro-exp-03-25"
+# Streaming not yet supported for 2.5 models
+# TODO: change to 2.5-pro-exp-03-25 or 2.5-flash-preview-04-17
+ROOT_AGENT_MODEL = "gemini-2.0-flash-exp"
+STUDENT_AGENT_MODEL = "gemini-2.0-flash-exp"
+FEEDBACK_AGENT_MODEL = "gemini-2.0-flash-exp"
 
 # TODO: delete this and change it because it was in Github
 GEMINI_API_KEY = "AIzaSyD17WtpBvb5JXbtfl_jdlaoKDaJWGh8dDk"
