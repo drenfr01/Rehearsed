@@ -1,6 +1,7 @@
 import os
 import json
 import asyncio
+from typing import AsyncGenerator
 
 from google.genai.types import (
     Part,
@@ -13,7 +14,7 @@ from google.adk.agents.run_config import RunConfig
 from google.adk.sessions.in_memory_session_service import InMemorySessionService
 
 
-from server.agents.agent import root_agent
+from server.agents.agent import root_agent, call_agent_async
 
 
 class AgentService:
@@ -21,13 +22,18 @@ class AgentService:
         self.app_name = os.getenv("APP_NAME", "Time to Teach")
         self.session_service = InMemorySessionService()
 
-    def start_agent_session(self, session_id: str):
+    # TODO: make return type a Pydantic model
+    def start_agent_session(
+        self, user_id: str, session_id: str
+    ) -> tuple[Runner, AsyncGenerator, LiveRequestQueue]:
         """Starts an agent session"""
 
         # Create a Session
+        # TODO: pass in a real user_id
+        # TODO: can pass in initial state here
         session = self.session_service.create_session(
             app_name=self.app_name,
-            user_id=session_id,
+            user_id=user_id,
             session_id=session_id,
         )
 
@@ -50,7 +56,13 @@ class AgentService:
             live_request_queue=live_request_queue,
             run_config=run_config,
         )
-        return live_events, live_request_queue
+        return runner, live_events, live_request_queue
+
+    async def request_agent_response(
+        self, runner: Runner, user_id: str, session_id: str, message: str
+    ):
+        print(f"Requesting agent response for session {session_id}")
+        return await call_agent_async(message, runner, user_id, session_id)
 
     @staticmethod
     async def agent_to_client_messaging(websocket, live_events):

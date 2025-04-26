@@ -4,7 +4,7 @@ from dotenv import load_dotenv
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from server.routers import agent_router_streaming, conversation_router, scenario_router
+from server.routers import agent_router, conversation_router, scenario_router
 from server.service.gemini_service import GeminiService
 from server.service.scenario_service import ScenarioService
 
@@ -35,7 +35,7 @@ app.add_middleware(
 
 app.include_router(conversation_router.router)
 app.include_router(scenario_router.router)
-app.include_router(agent_router_streaming.router)
+app.include_router(agent_router.router)
 
 
 @app.get("/")
