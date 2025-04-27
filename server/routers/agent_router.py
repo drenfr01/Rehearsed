@@ -6,6 +6,7 @@ from pydantic import BaseModel
 from server.agents.agent_streaming import streaming_root_agent
 from server.agents.agent import root_agent as request_root_agent
 from server.agents.feedback_agent import feedback_agent
+from server.models.agent_interface import Conversation
 
 router = APIRouter(
     prefix="/agent",
@@ -15,7 +16,7 @@ router = APIRouter(
 
 
 async def get_agent_service_request() -> AgentServiceRequest:
-    return AgentServiceRequest()
+    return AgentServiceRequest(root_agent=request_root_agent)
 
 
 async def get_agent_service_streaming() -> AgentServiceStreaming:
@@ -28,25 +29,45 @@ class AgentRequest(BaseModel):
     user_id: str
 
 
+@router.post("/start-session")
+async def start_session(
+    agent_request: AgentRequest,
+    agent_service: AgentServiceRequest = Depends(get_agent_service_request),
+):
+    return await agent_service.initialize_agent(
+        agent_request.user_id, agent_request.session_id
+    )
+
+
 @router.post("/request")
 async def request_agent_response(
     agent_request: AgentRequest,
     agent_service: AgentServiceRequest = Depends(get_agent_service_request),
 ):
-    print(f"Requesting agent response for session {agent_request.session_id}")
-    runner, _, _ = agent_service.start_agent_session(
-        agent_request.user_id, agent_request.session_id, request_root_agent
-    )
-
+    # TODO: I don't love this, it seems brittle
+    # The issue is that each request gets a different AgentService. So
+    # the initialization in the below get request doesn't actually configure
+    # the agentservice for this route
+    if agent_service.runner is None:
+        agent_service.initialize_agent(agent_request.user_id, agent_request.session_id)
     return await agent_service.request_agent_response(
-        runner,
+        agent_service.runner,
         agent_request.user_id,
         agent_request.session_id,
         agent_request.message,
     )
 
 
-@router.post("/request/feedback")
+@router.get("/conversation/{user_id}/{session_id}")
+async def get_conversation_content(
+    user_id: str,
+    session_id: str,
+    agent_service: AgentServiceRequest = Depends(get_agent_service_request),
+) -> Conversation:
+    return await agent_service.get_session_content(user_id, session_id)
+
+
+@router.post("/feedback")
 async def request_feedback(
     feedback_request: AgentRequest,
     agent_service: AgentServiceRequest = Depends(get_agent_service_request),
@@ -58,11 +79,13 @@ async def request_feedback(
         root_agent=feedback_agent,
     )
 
+    feedback_message = "Please provide feedback on the users conversation"
+    # TODO: figure out how to pass in feedback agent?
     return await agent_service.request_agent_response(
         runner,
         feedback_request.user_id,
         feedback_request.session_id,
-        feedback_request.message,
+        feedback_message,
     )
 
 

@@ -1,7 +1,7 @@
 import "bulma/css/bulma.css";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import Root from "./pages/Root";
-import Simulation from "./pages/Simulation";
+import AgentSimulation from "./pages/AgentSimulation";
 import ScenarioIntroduction from "./pages/ScenarioIntroduction";
 import ScenarioFeedback from "./pages/ScenarioFeedback";
 import ScenarioSelection from "./pages/ScenarioSelection";
@@ -20,8 +20,8 @@ const router = createBrowserRouter([
         element: <ScenarioIntroduction />,
       },
       {
-        path: "simulation",
-        element: <Simulation />,
+        path: "agent-simulation",
+        element: <AgentSimulation />,
       },
       {
         path: "scenario-feedback",

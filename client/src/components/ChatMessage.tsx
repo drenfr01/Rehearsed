@@ -1,8 +1,8 @@
-import { ResponseMessage } from "../interfaces/MessageInterface";
+import { AgentResponse } from "../interfaces/AgentInterface";
 import { FaPerson, FaRobot } from "react-icons/fa6";
 import ReactMarkdown from "react-markdown";
 
-export default function ChatMessage({ message }: { message: ResponseMessage }) {
+export default function ChatMessage({ message }: { message: AgentResponse }) {
   const isUser = message.role === "user";
 
   let iconContent;
@@ -44,7 +44,7 @@ export default function ChatMessage({ message }: { message: ResponseMessage }) {
           </div>
           <div className="column">
             <div className="has-text-left">
-              <ReactMarkdown>{message.message}</ReactMarkdown>
+              <ReactMarkdown>{message.content}</ReactMarkdown>
             </div>
           </div>
         </div>

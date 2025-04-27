@@ -12,8 +12,8 @@ export default function Header() {
             <Link to="/scenario-introduction" className="navbar-item">
               Scenario Introduction
             </Link>
-            <Link to="/simulation" className="navbar-item">
-              Simulation
+            <Link to="/agent-simulation" className="navbar-item">
+              Agent Simulation
             </Link>
             <Link to="/scenario-feedback" className="navbar-item">
               Scenario Feedback

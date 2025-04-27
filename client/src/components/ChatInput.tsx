@@ -1,33 +1,35 @@
 import { useState } from "react";
-import { conversationAPI } from "../store/apis/conversationAPI";
+import { agentAPI } from "../store/apis/agentAPI";
 import { useNavigate } from "react-router-dom";
 
 interface ChatInputProps {
-  postMessage: ReturnType<
-    typeof conversationAPI.endpoints.postMessage.useMutation
+  postRequest: ReturnType<typeof agentAPI.endpoints.postRequest.useMutation>[0];
+  provideAgentFeedback: ReturnType<
+    typeof agentAPI.endpoints.provideAgentFeedback.useMutation
   >[0];
-  provideUserFeedback: ReturnType<
-    typeof conversationAPI.endpoints.provideUserFeedback.useMutation
-  >[0];
+  userId: string;
+  sessionId: string;
 }
 
 export default function ChatInput({
-  postMessage,
-  provideUserFeedback,
+  postRequest,
+  provideAgentFeedback,
+  userId,
+  sessionId,
 }: ChatInputProps) {
   const [message, setMessage] = useState("");
   const navigate = useNavigate();
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    postMessage({ message, userId: 1 });
+    postRequest({ message, userId: userId, sessionId: sessionId });
   };
 
   const handleProvideUserFeedback = (
     e: React.MouseEvent<HTMLButtonElement>
   ) => {
     e.preventDefault();
-    provideUserFeedback({ userId: "1" });
+    provideAgentFeedback({ userId: userId, sessionId: sessionId });
     navigate("/scenario-feedback");
   };
 
