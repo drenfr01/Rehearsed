@@ -41,6 +41,7 @@ export default function ChatMessage({ message }: { message: AgentResponse }) {
             >
               <i className={`fas fa-${isUser ? "user" : "robot"} fa-2x`}></i>
             </span>
+            <span className="has-text-weight-bold">{message.author}</span>
           </div>
           <div className="column">
             <div className="has-text-left">

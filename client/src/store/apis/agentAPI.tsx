@@ -1,6 +1,7 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 import { SummarizeFeedbackRequest } from "../../interfaces/MessageInterface";
 import { AgentRequest } from "../../interfaces/AgentInterface";
+
 const agentAPI = createApi({
   reducerPath: "agent",
   baseQuery: fetchBaseQuery({ baseUrl: "http://127.0.0.1:8000/agent" }),
@@ -21,8 +22,9 @@ const agentAPI = createApi({
         },
       }),
       postRequest: builder.mutation({
-        // TODO: invalidate this tag unique to a user
-        invalidatesTags: ["Conversation"],
+        invalidatesTags: (result, error, arg) => [
+          { type: "Conversation", id: `${arg.userId}-${arg.sessionId}` },
+        ],
         query: (agentRequest: AgentRequest) => {
           return {
             url: "/request",
@@ -36,7 +38,9 @@ const agentAPI = createApi({
         },
       }),
       fetchConversation: builder.query({
-        providesTags: ["Conversation"],
+        providesTags: (result, error, arg) => [
+          { type: "Conversation", id: `${arg.userId}-${arg.sessionId}` },
+        ],
         query: ({
           userId,
           sessionId,

@@ -48,8 +48,7 @@ async def request_agent_response(
     # The issue is that each request gets a different AgentService. So
     # the initialization in the below get request doesn't actually configure
     # the agentservice for this route
-    if agent_service.runner is None:
-        agent_service.initialize_agent(agent_request.user_id, agent_request.session_id)
+    agent_service.initialize_agent(agent_request.user_id, agent_request.session_id)
     return await agent_service.request_agent_response(
         agent_service.runner,
         agent_request.user_id,

@@ -25,6 +25,7 @@ class AgentService:
             app_name=self.app_name, user_id=user_id, session_id=session_id
         )
         if session is None:
+            print(f"Creating session for user {user_id} and session {session_id}")
             session = self.session_service.create_session(
                 app_name=self.app_name,
                 user_id=user_id,

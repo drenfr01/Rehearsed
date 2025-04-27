@@ -7,10 +7,12 @@ import {
   useFetchConversationQuery,
   useProvideAgentFeedbackMutation,
 } from "../store";
+import { useId } from "react";
 
 export default function AgentSimulation() {
-  const userId = "9";
-  const sessionId = "234";
+  // TODO: these will be set by user login
+  const userId = "16";
+  const sessionId = useId();
 
   const [postRequest, results] = usePostRequestMutation();
   const { data, error, isFetching } = useFetchConversationQuery({
