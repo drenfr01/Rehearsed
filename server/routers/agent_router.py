@@ -5,6 +5,7 @@ import asyncio
 from pydantic import BaseModel
 from server.agents.agent_streaming import streaming_root_agent
 from server.agents.agent import root_agent as request_root_agent
+from server.agents.feedback_agent import feedback_agent
 
 router = APIRouter(
     prefix="/agent",
@@ -42,6 +43,26 @@ async def request_agent_response(
         agent_request.user_id,
         agent_request.session_id,
         agent_request.message,
+    )
+
+
+@router.post("/request/feedback")
+async def request_feedback(
+    feedback_request: AgentRequest,
+    agent_service: AgentServiceRequest = Depends(get_agent_service_request),
+):
+    print(f"Requesting feedback for session {feedback_request.session_id}")
+    runner = agent_service.get_agent_session(
+        user_id=feedback_request.user_id,
+        session_id=feedback_request.session_id,
+        root_agent=feedback_agent,
+    )
+
+    return await agent_service.request_agent_response(
+        runner,
+        feedback_request.user_id,
+        feedback_request.session_id,
+        feedback_request.message,
     )
 
 
