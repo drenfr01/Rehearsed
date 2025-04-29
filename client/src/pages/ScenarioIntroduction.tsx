@@ -31,7 +31,7 @@ export default function ScenarioIntroduction() {
             <div className="control">
               <button
                 className="button is-primary is-large"
-                onClick={() => navigate("/simulation")}
+                onClick={() => navigate("/agent-simulation")}
               >
                 Start Simulation
               </button>

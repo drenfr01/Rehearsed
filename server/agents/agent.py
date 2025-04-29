@@ -13,10 +13,6 @@ ROOT_AGENT_MODEL = "gemini-2.5-pro-exp-03-25"
 STUDENT_AGENT_MODEL = "gemini-2.5-flash-preview-04-17"
 FEEDBACK_AGENT_MODEL = "gemini-2.5-flash-preview-04-17"
 
-# TODO: delete this and change it because it was in Github
-GEMINI_API_KEY = "AIzaSyD17WtpBvb5JXbtfl_jdlaoKDaJWGh8dDk"
-# Has to be here because the ADK CLI needs to find it
-
 
 def load_student_agents(file_path: str = "agents/student_agents.yaml") -> list[Agent]:
     print(f"Loading student agents from {file_path}")
