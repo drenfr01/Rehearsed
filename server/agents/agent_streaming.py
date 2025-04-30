@@ -1,5 +1,4 @@
 from google.adk.agents import Agent
-
 from yaml import safe_load
 
 # Streaming not yet supported for 2.5 models, defaulting to models used for

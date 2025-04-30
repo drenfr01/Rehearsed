@@ -1,13 +1,9 @@
-from server.service.agent_service import AgentService
-
-
+from google.adk.agents import Agent
 from google.adk.runners import Runner
 
-
-from google.adk.agents import Agent
 from server.agents.agent import call_agent_async
-
 from server.models.agent_interface import Conversation, ConversationTurn
+from server.service.agent_service import AgentService
 
 
 class AgentServiceRequest(AgentService):

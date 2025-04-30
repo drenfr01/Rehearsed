@@ -1,7 +1,8 @@
-from yaml import safe_load
 from google.adk.agents import Agent
+from yaml import safe_load
 
-FEEDBACK_AGENT_MODEL = "gemini-2.5-pro-exp-03-25"
+FEEDBACK_AGENT_MODEL = "gemini-2.5-flash-preview-04-17"
+# FEEDBACK_AGENT_MODEL = "gemini-2.5-pro-exp-03-25"
 
 
 def load_feedback_agent(file_path: str = "agents/feedback_agent.yaml") -> Agent:

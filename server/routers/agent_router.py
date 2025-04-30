@@ -1,12 +1,14 @@
-from fastapi import APIRouter, Depends, WebSocket
-from server.service.agent_service_request import AgentServiceRequest
-from server.service.agent_service_streaming import AgentServiceStreaming
 import asyncio
+
+from fastapi import APIRouter, Depends, WebSocket
 from pydantic import BaseModel
-from server.agents.agent_streaming import streaming_root_agent
+
 from server.agents.agent import root_agent as request_root_agent
+from server.agents.agent_streaming import streaming_root_agent
 from server.agents.feedback_agent import feedback_agent
 from server.models.agent_interface import Conversation
+from server.service.agent_service_request import AgentServiceRequest
+from server.service.agent_service_streaming import AgentServiceStreaming
 
 router = APIRouter(
     prefix="/agent",

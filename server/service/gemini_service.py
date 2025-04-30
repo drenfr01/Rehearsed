@@ -1,8 +1,9 @@
 import os
-import yaml
 
+import yaml
 from google import genai
 from google.genai import types
+
 from server.models.message import Message, SummarizeFeedbackResponse
 from server.service.scenario_service import ScenarioService
 
@@ -20,7 +21,7 @@ class GeminiService:
         self.client = genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
         # gemini-2.5-pro-exp-03-25
         # gemini-2.0-flash
-        self.model_name = "gemini-2.0-flash"
+        self.model_name = "gemini-2.5-flash-preview-04-17"
         # TODO: use chat for multi turn history
         self.chat = self.client.chats.create(model=self.model_name)
 

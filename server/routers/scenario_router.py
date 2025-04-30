@@ -1,4 +1,5 @@
 from fastapi import APIRouter, Request
+
 from server.models.scenario_data import (
     ScenarioData,
     ScenarioDataList,

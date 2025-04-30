@@ -4,13 +4,24 @@ from dotenv import load_dotenv
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from server.routers import agent_router, conversation_router, scenario_router
+# Note: dependencies matters, we need to import all models before creating the engine
+from server.dependencies.database import initialize_clean_db
+from server.orm.sample_data import initialize_sample_user_data
+from server.routers import (
+    agent_router,
+    conversation_router,
+    login_router,
+    scenario_router,
+)
 from server.service.gemini_service import GeminiService
 from server.service.scenario_service import ScenarioService
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    # TODO: need to change this to more persistent storage, right now just starting with clean db every time
+    initialize_clean_db()
+    initialize_sample_user_data()
     # TODO: probably factor these to Depends in the individual routes
     scenario_service = ScenarioService()
     gemini_service = GeminiService(scenario_service)
@@ -24,6 +35,7 @@ load_dotenv()
 
 app = FastAPI(lifespan=lifespan)
 
+
 # Add CORS middleware
 app.add_middleware(
     CORSMiddleware,
@@ -36,6 +48,7 @@ app.add_middleware(
 app.include_router(conversation_router.router)
 app.include_router(scenario_router.router)
 app.include_router(agent_router.router)
+app.include_router(login_router.router)
 
 
 @app.get("/")

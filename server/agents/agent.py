@@ -3,13 +3,13 @@
 from google.adk.agents import Agent
 from google.adk.runners import Runner
 from google.genai import types
-
 from yaml import safe_load
 
 # Streaming not yet supported for 2.5 models, defaulting to models used for
 # adk web and HTTP commands
 # TODO: change to 2.5-pro-exp-03-25 or 2.5-flash-preview-04-17
-ROOT_AGENT_MODEL = "gemini-2.5-pro-exp-03-25"
+# ROOT_AGENT_MODEL = "gemini-2.5-pro-exp-03-25"
+ROOT_AGENT_MODEL = "gemini-2.5-flash-preview-04-17"
 STUDENT_AGENT_MODEL = "gemini-2.5-flash-preview-04-17"
 FEEDBACK_AGENT_MODEL = "gemini-2.5-flash-preview-04-17"
 

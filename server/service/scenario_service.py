@@ -1,5 +1,6 @@
-from server.models.scenario_data import ScenarioData, ScenarioDataList
 import yaml
+
+from server.models.scenario_data import ScenarioData, ScenarioDataList
 
 
 # TODO: Move to ORM layer, eventually this will be DB call
