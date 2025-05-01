@@ -1,6 +1,13 @@
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 export default function Header() {
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    navigate("/login");
+  };
+
   return (
     <header className="navbar is-white has-shadow">
       <div className="container">
@@ -18,6 +25,13 @@ export default function Header() {
             <Link to="/scenario-feedback" className="navbar-item">
               Scenario Feedback
             </Link>
+          </div>
+        </div>
+        <div className="navbar-end">
+          <div className="navbar-item">
+            <button className="button is-light" onClick={handleLogout}>
+              Logout
+            </button>
           </div>
         </div>
       </div>
