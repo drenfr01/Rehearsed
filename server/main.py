@@ -18,6 +18,9 @@ from server.service.scenario_service import ScenarioService
 
 from server.routers.admin.scenarios_crud import router as scenarios_crud_router
 from server.routers.admin.agents_crud import router as agents_crud_router
+from server.routers.admin.subagent_links_crud import (
+    router as subagent_links_crud_router,
+)
 
 
 @asynccontextmanager
@@ -56,6 +59,7 @@ app.include_router(login_router.router)
 # CRUD routers for admin
 app.include_router(scenarios_crud_router)
 app.include_router(agents_crud_router)
+app.include_router(subagent_links_crud_router)
 
 
 @app.get("/")
