@@ -5,16 +5,9 @@ from server.models.agent_model import Scenario
 from server.dependencies.database import get_session
 from server.routers.login_router import get_current_active_user
 from server.models.user_model import User
+from server.routers.admin.util import verify_admin
 
 router = APIRouter(prefix="/scenarios", tags=["scenarios_crud"])
-
-
-async def verify_admin(current_user: User = Depends(get_current_active_user)):
-    if not current_user.admin:
-        raise HTTPException(
-            status_code=403, detail="Not enough permissions. Admin access required."
-        )
-    return current_user
 
 
 @router.post("/", response_model=Scenario)

@@ -7,14 +7,7 @@ from server.routers.login_router import get_current_active_user
 from server.models.user_model import User
 
 router = APIRouter(prefix="/agents_crud", tags=["agents_crud"])
-
-
-async def verify_admin(current_user: User = Depends(get_current_active_user)):
-    if not current_user.admin:
-        raise HTTPException(
-            status_code=403, detail="Not enough permissions. Admin access required."
-        )
-    return current_user
+from server.routers.admin.util import verify_admin
 
 
 @router.post("/", response_model=AgentPydantic)

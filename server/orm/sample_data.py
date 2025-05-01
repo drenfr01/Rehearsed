@@ -39,6 +39,7 @@ def initialize_sample_user_data() -> None:
             email="john@test.com",
             hashed_password="$2b$12$pCYsSI/mmqaZOoxkUSslbeFzyxlr38CTulWtGkElzld7p1xVemRYG",
             disabled=False,
+            admin=False,
         )
         user2 = UserInDB(
             id=2,
@@ -46,6 +47,7 @@ def initialize_sample_user_data() -> None:
             email="jane@test.com",
             hashed_password="$2b$12$CfXveIDjm7Pvs//KSXc7m.A7mw2XViro3gmfxIbH6p8/skAx4xxea",
             disabled=False,
+            admin=True,
         )
         session.add(user)
         session.add(user2)
