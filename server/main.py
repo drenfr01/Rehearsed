@@ -6,7 +6,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 # Note: dependencies matters, we need to import all models before creating the engine
 from server.dependencies.database import initialize_clean_db
-from server.orm.sample_data import initialize_sample_user_data
+from server.orm.sample_data import initialize_all_sample_data
 from server.routers import (
     agent_router,
     conversation_router,
@@ -21,13 +21,13 @@ from server.service.scenario_service import ScenarioService
 async def lifespan(app: FastAPI):
     # TODO: need to change this to more persistent storage, right now just starting with clean db every time
     initialize_clean_db()
-    initialize_sample_user_data()
+    initialize_all_sample_data()
     # TODO: probably factor these to Depends in the individual routes
-    scenario_service = ScenarioService()
-    gemini_service = GeminiService(scenario_service)
+    # scenario_service = ScenarioService()
+    # gemini_service = GeminiService(scenario_service)
     yield {
-        "gemini_service": gemini_service,
-        "scenario_service": scenario_service,
+        # "gemini_service": gemini_service,
+        # "scenario_service": scenario_service,
     }
 
 

@@ -1,6 +1,7 @@
 from pydantic import BaseModel
 
 
+# TODO: delete this and move the below lists to the agent_model.py file
 class ScenarioData(BaseModel):
     name: str
     description: str

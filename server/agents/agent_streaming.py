@@ -12,7 +12,7 @@ GEMINI_API_KEY = "AIzaSyD17WtpBvb5JXbtfl_jdlaoKDaJWGh8dDk"
 # Has to be here because the ADK CLI needs to find it
 
 
-def load_student_agents(file_path: str = "agents/student_agents.yaml") -> list[Agent]:
+def load_student_agents(file_path: str = "orm/student_agents.yaml") -> list[Agent]:
     print(f"Loading student agents from {file_path}")
     with open(file_path, "r") as f:
         student_agents_yaml = safe_load(f)
@@ -32,7 +32,7 @@ def load_student_agents(file_path: str = "agents/student_agents.yaml") -> list[A
 
 
 # TODO: make this a deterministically run agent with appropriate session
-def load_feedback_agent(file_path: str = "agents/feedback_agent.yaml") -> list[Agent]:
+def load_feedback_agent(file_path: str = "orm/feedback_agent.yaml") -> list[Agent]:
     print(f"Loading feedback agent from {file_path}")
     with open(file_path, "r") as f:
         feedback_agent_yaml = safe_load(f)
@@ -47,7 +47,7 @@ def load_feedback_agent(file_path: str = "agents/feedback_agent.yaml") -> list[A
     ]
 
 
-def load_root_agent(file_path: str = "agents/root_agent.yaml") -> Agent:
+def load_root_agent(file_path: str = "orm/root_agent.yaml") -> Agent:
     print(f"Loading root agent from {file_path}")
     with open(file_path, "r") as f:
         root_agent_yaml = safe_load(f)

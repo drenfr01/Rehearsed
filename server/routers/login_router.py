@@ -11,7 +11,7 @@ from pydantic import BaseModel
 from sqlmodel import Session, select
 
 from server.dependencies.database import SessionDep
-from server.orm.user_model import User, UserInDB
+from server.models.user_model import User, UserInDB
 
 # TODO: move to .env
 ALGORITHM = "HS256"
@@ -25,21 +25,6 @@ router = APIRouter(
 )
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/user/token")
-
-# fake_users_db = {
-#     "johndoe": {
-#         "username": "johndoe",
-#         "email": "john@test.com",
-#         "hashed_password": "$2b$12$pCYsSI/mmqaZOoxkUSslbeFzyxlr38CTulWtGkElzld7p1xVemRYG",
-#         "disabled": False,
-#     },
-#     "janedoe": {
-#         "username": "janedoe",
-#         "email": "jane@test.com",
-#         "hashed_password": "$2b$12$CfXveIDjm7Pvs//KSXc7m.A7mw2XViro3gmfxIbH6p8/skAx4xxea",
-#         "disabled": False,
-#     },
-# }
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 

@@ -14,7 +14,8 @@ STUDENT_AGENT_MODEL = "gemini-2.5-flash-preview-04-17"
 FEEDBACK_AGENT_MODEL = "gemini-2.5-flash-preview-04-17"
 
 
-def load_student_agents(file_path: str = "agents/student_agents.yaml") -> list[Agent]:
+# TODO: make this load from the database
+def load_student_agents(file_path: str = "orm/student_agents.yaml") -> list[Agent]:
     print(f"Loading student agents from {file_path}")
     with open(file_path, "r") as f:
         student_agents_yaml = safe_load(f)
@@ -33,8 +34,8 @@ def load_student_agents(file_path: str = "agents/student_agents.yaml") -> list[A
     return student_agents
 
 
-# TODO: make this a deterministically run agent with appropriate session
-def load_feedback_agent(file_path: str = "agents/feedback_agent.yaml") -> list[Agent]:
+# TODO: make this load from the database
+def load_feedback_agent(file_path: str = "orm/feedback_agent.yaml") -> list[Agent]:
     print(f"Loading feedback agent from {file_path}")
     with open(file_path, "r") as f:
         feedback_agent_yaml = safe_load(f)
@@ -49,10 +50,13 @@ def load_feedback_agent(file_path: str = "agents/feedback_agent.yaml") -> list[A
     ]
 
 
-def load_root_agent(file_path: str = "agents/root_agent.yaml") -> Agent:
+# TODO: I think I can just parameterize this with the root agent name and
+# load it from the database
+def load_root_agent(file_path: str = "orm/root_agent.yaml") -> Agent:
     print(f"Loading root agent from {file_path}")
     with open(file_path, "r") as f:
         root_agent_yaml = safe_load(f)
+    # Will have to load sub agents from the database using the link
 
     return Agent(
         model=ROOT_AGENT_MODEL,
