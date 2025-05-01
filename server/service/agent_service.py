@@ -27,42 +27,42 @@ class AgentService:
     def get_root_agent_by_scenario_id(
         self, scenario_id: int
     ) -> tuple[AgentPydantic, Agent]:
-        with get_session() as session:
-            statement = select(AgentPydantic).where(
-                AgentPydantic.scenario_id == scenario_id,
-                AgentPydantic.name == "root_agent",
-            )
-            agent_pydantic = session.exec(statement).one()
-            return agent_pydantic, Agent(
-                name=agent_pydantic.name,
-                description=agent_pydantic.description,
-                instruction=agent_pydantic.instruction,
-                model=agent_pydantic.model,
-            )
+        session = next(get_session())
+        statement = select(AgentPydantic).where(
+            AgentPydantic.scenario_id == scenario_id,
+            AgentPydantic.name == "root_agent",
+        )
+        agent_pydantic = session.exec(statement).one()
+        return agent_pydantic, Agent(
+            name=agent_pydantic.name,
+            description=agent_pydantic.description,
+            instruction=agent_pydantic.instruction,
+            model=agent_pydantic.model,
+        )
 
     def get_agents(self, agents: list[int]) -> list[Agent]:
-        with get_session() as session:
-            statement = select(AgentPydantic).where(AgentPydantic.id.in_(agents))
-            agents_pydantic = session.exec(statement).all()
-            agents = []
-            for agent_pydantic in agents_pydantic:
-                agents.append(
-                    Agent(
-                        name=agent_pydantic.name,
-                        description=agent_pydantic.description,
-                        instruction=agent_pydantic.instruction,
-                        model=agent_pydantic.model,
-                    )
+        session = next(get_session())
+        statement = select(AgentPydantic).where(AgentPydantic.id.in_(agents))
+        agents_pydantic = session.exec(statement).all()
+        agents = []
+        for agent_pydantic in agents_pydantic:
+            agents.append(
+                Agent(
+                    name=agent_pydantic.name,
+                    description=agent_pydantic.description,
+                    instruction=agent_pydantic.instruction,
+                    model=agent_pydantic.model,
                 )
-            return agents
+            )
+        return agents
 
     def get_sub_agent_ids(self, root_agent_id: int) -> list[int]:
-        with get_session() as session:
-            statement = select(SubAgentLink).where(
-                SubAgentLink.root_agent_id == root_agent_id
-            )
-            sub_agent_links = session.exec(statement).all()
-            return [link.sub_agent_id for link in sub_agent_links]
+        session = next(get_session())
+        statement = select(SubAgentLink).where(
+            SubAgentLink.root_agent_id == root_agent_id
+        )
+        sub_agent_links = session.exec(statement).all()
+        return [link.sub_agent_id for link in sub_agent_links]
 
     def load_root_agent(self) -> Agent:
         print(f"Loading root agent for scenario {self.scenario_service.scenario.id}")
