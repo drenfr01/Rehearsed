@@ -10,10 +10,6 @@ interface Scenario {
   system_instructions: string;
 }
 
-interface ScenariosResponse {
-  scenarios: Record<string, Scenario>;
-}
-
 export default function ScenarioSelection() {
   const [selectedScenario, setSelectedScenario] = useState("");
   const [description, setDescription] = useState("");
@@ -24,8 +20,9 @@ export default function ScenarioSelection() {
   const handleScenarioChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const scenarioId = e.target.value;
     setSelectedScenario(scenarioId);
-    if (scenarioId && data?.scenarios) {
-      setDescription(data.scenarios[scenarioId].description);
+    console.log(data[scenarioId]);
+    if (scenarioId && data) {
+      setDescription(data[scenarioId].description);
     } else {
       setDescription("");
     }
@@ -47,7 +44,7 @@ export default function ScenarioSelection() {
   } else if (error) {
     content = <div>Error: {error.toString()}</div>;
   } else {
-    const scenarios = (data as ScenariosResponse)?.scenarios || {};
+    const scenarios = (data as [Scenario]) || [];
     content = (
       <form onSubmit={handleSubmit}>
         <div className="field">
