@@ -6,8 +6,8 @@ class User(SQLModel):
     username: str = Field(default=None)
     email: str
     disabled: bool
+    admin: bool = Field(default=False)
 
 
 class UserInDB(User, table=True):
     hashed_password: str
-    admin: bool = Field(default=False)

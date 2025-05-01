@@ -1,7 +1,9 @@
 import { Link, useNavigate } from "react-router-dom";
+import { useGetCurrentUserQuery } from "../store/apis/authAPI";
 
 export default function Header() {
   const navigate = useNavigate();
+  const { data: user } = useGetCurrentUserQuery();
 
   const handleLogout = () => {
     localStorage.removeItem("token");
@@ -25,6 +27,11 @@ export default function Header() {
             <Link to="/scenario-feedback" className="navbar-item">
               Scenario Feedback
             </Link>
+            {user?.admin && (
+              <Link to="/admin/agents" className="navbar-item">
+                Admin
+              </Link>
+            )}
           </div>
         </div>
         <div className="navbar-end">

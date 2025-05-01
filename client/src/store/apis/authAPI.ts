@@ -10,6 +10,13 @@ interface LoginResponse {
   token_type: string;
 }
 
+interface User {
+  id: number;
+  username: string;
+  email: string;
+  admin: boolean;
+}
+
 export const authAPI = createApi({
   reducerPath: 'authAPI',
   baseQuery: fetchBaseQuery({ 
@@ -36,7 +43,7 @@ export const authAPI = createApi({
         },
       }),
     }),
-    getCurrentUser: builder.query<any, void>({
+    getCurrentUser: builder.query<User, void>({
       query: () => '/me',
     }),
   }),

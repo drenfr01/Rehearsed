@@ -10,3 +10,12 @@ export interface AgentResponse {
   author: string;
   message_id: string;
 }
+
+export interface Agent {
+  id: number;
+  name: string;
+  description: string;
+  role: string;
+  created_at: string;
+  updated_at: string;
+}

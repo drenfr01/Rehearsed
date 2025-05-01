@@ -6,7 +6,9 @@ import ScenarioIntroduction from "./pages/ScenarioIntroduction";
 import ScenarioFeedback from "./pages/ScenarioFeedback";
 import ScenarioSelection from "./pages/ScenarioSelection";
 import Login from "./pages/Login";
+import AgentManagement from "./pages/AgentManagement";
 import ProtectedRoute from "./components/ProtectedRoute";
+import AdminRoute from "./components/AdminRoute";
 
 const router = createBrowserRouter([
   {
@@ -32,6 +34,14 @@ const router = createBrowserRouter([
       {
         path: "scenario-feedback",
         element: <ScenarioFeedback />,
+      },
+      {
+        path: "admin/agents",
+        element: (
+          <AdminRoute>
+            <AgentManagement />
+          </AdminRoute>
+        ),
       },
     ],
   },

@@ -3,6 +3,7 @@ import { conversationAPI } from "./apis/conversationAPI";
 import { scenarioAPI } from "./apis/scenarioAPI";
 import { agentAPI } from "./apis/agentAPI";
 import { authAPI } from "./apis/authAPI";
+import { agentsCrudAPI } from "./apis/agentsCrudAPI";
 import { setupListeners } from "@reduxjs/toolkit/query";
 
 const store = configureStore({
@@ -11,13 +12,15 @@ const store = configureStore({
     [scenarioAPI.reducerPath]: scenarioAPI.reducer,
     [agentAPI.reducerPath]: agentAPI.reducer,
     [authAPI.reducerPath]: authAPI.reducer,
+    [agentsCrudAPI.reducerPath]: agentsCrudAPI.reducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware()
       .concat(conversationAPI.middleware)
       .concat(scenarioAPI.middleware)
       .concat(agentAPI.middleware)
-      .concat(authAPI.middleware),
+      .concat(authAPI.middleware)
+      .concat(agentsCrudAPI.middleware),
 });
 
 // window.store = store;
@@ -45,3 +48,10 @@ export {
 } from "./apis/scenarioAPI";
 
 export { useLoginMutation, useGetCurrentUserQuery } from "./apis/authAPI";
+
+export {
+  useFetchAgentsQuery,
+  useCreateAgentMutation,
+  useUpdateAgentMutation,
+  useDeleteAgentMutation,
+} from "./apis/agentsCrudAPI";
