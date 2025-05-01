@@ -24,14 +24,6 @@ const agentsCrudAPI = createApi({
           method: "GET",
         }),
         providesTags: ["Agents"],
-        transformResponse: (response: Agent[]) => {
-          console.log("API Response:", response);
-          return response;
-        },
-        transformErrorResponse: (response) => {
-          console.error("API Error:", response);
-          return response;
-        },
       }),
       createAgent: builder.mutation<Agent, Partial<Agent>>({
         query: (agent) => ({
@@ -40,6 +32,22 @@ const agentsCrudAPI = createApi({
           body: agent,
         }),
         invalidatesTags: ["Agents"],
+        async onQueryStarted(agent, { dispatch, queryFulfilled }) {
+          const patchResult = dispatch(
+            agentsCrudAPI.util.updateQueryData(
+              "fetchAgents",
+              undefined,
+              (draft) => {
+                draft.push({ ...agent, id: Date.now() } as Agent);
+              }
+            )
+          );
+          try {
+            await queryFulfilled;
+          } catch {
+            patchResult.undo();
+          }
+        },
       }),
       updateAgent: builder.mutation<
         Agent,
@@ -51,6 +59,25 @@ const agentsCrudAPI = createApi({
           body: agent,
         }),
         invalidatesTags: ["Agents"],
+        async onQueryStarted({ id, agent }, { dispatch, queryFulfilled }) {
+          const patchResult = dispatch(
+            agentsCrudAPI.util.updateQueryData(
+              "fetchAgents",
+              undefined,
+              (draft) => {
+                const index = draft.findIndex((a) => a.id === id);
+                if (index !== -1) {
+                  draft[index] = { ...draft[index], ...agent };
+                }
+              }
+            )
+          );
+          try {
+            await queryFulfilled;
+          } catch {
+            patchResult.undo();
+          }
+        },
       }),
       deleteAgent: builder.mutation<void, number>({
         query: (id) => ({
@@ -58,6 +85,25 @@ const agentsCrudAPI = createApi({
           method: "DELETE",
         }),
         invalidatesTags: ["Agents"],
+        async onQueryStarted(id, { dispatch, queryFulfilled }) {
+          const patchResult = dispatch(
+            agentsCrudAPI.util.updateQueryData(
+              "fetchAgents",
+              undefined,
+              (draft) => {
+                const index = draft.findIndex((a) => a.id === id);
+                if (index !== -1) {
+                  draft.splice(index, 1);
+                }
+              }
+            )
+          );
+          try {
+            await queryFulfilled;
+          } catch {
+            patchResult.undo();
+          }
+        },
       }),
     };
   },
