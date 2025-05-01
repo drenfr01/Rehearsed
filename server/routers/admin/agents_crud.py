@@ -3,12 +3,26 @@ from fastapi import APIRouter, HTTPException, Depends
 from sqlmodel import Session, select
 from server.models.agent_model import AgentPydantic
 from server.dependencies.database import get_session
+from server.routers.login_router import get_current_active_user
+from server.models.user_model import User
 
 router = APIRouter(prefix="/agents_crud", tags=["agents_crud"])
 
 
+async def verify_admin(current_user: User = Depends(get_current_active_user)):
+    if not current_user.admin:
+        raise HTTPException(
+            status_code=403, detail="Not enough permissions. Admin access required."
+        )
+    return current_user
+
+
 @router.post("/", response_model=AgentPydantic)
-def create_agent(agent: AgentPydantic, session: Session = Depends(get_session)):
+async def create_agent(
+    agent: AgentPydantic,
+    session: Session = Depends(get_session),
+    _: User = Depends(verify_admin),
+):
     """Create a new agent"""
     session.add(agent)
     session.commit()
@@ -17,14 +31,20 @@ def create_agent(agent: AgentPydantic, session: Session = Depends(get_session)):
 
 
 @router.get("/", response_model=List[AgentPydantic])
-def get_agents(session: Session = Depends(get_session)):
+async def get_agents(
+    session: Session = Depends(get_session), _: User = Depends(verify_admin)
+):
     """Get all agents"""
     agents = session.exec(select(AgentPydantic)).all()
     return agents
 
 
 @router.get("/{agent_id}", response_model=AgentPydantic)
-def get_agent(agent_id: int, session: Session = Depends(get_session)):
+async def get_agent(
+    agent_id: int,
+    session: Session = Depends(get_session),
+    _: User = Depends(verify_admin),
+):
     """Get a specific agent by ID"""
     agent = session.get(AgentPydantic, agent_id)
     if not agent:
@@ -33,8 +53,11 @@ def get_agent(agent_id: int, session: Session = Depends(get_session)):
 
 
 @router.put("/{agent_id}", response_model=AgentPydantic)
-def update_agent(
-    agent_id: int, agent_update: AgentPydantic, session: Session = Depends(get_session)
+async def update_agent(
+    agent_id: int,
+    agent_update: AgentPydantic,
+    session: Session = Depends(get_session),
+    _: User = Depends(verify_admin),
 ):
     """Update a specific agent"""
     db_agent = session.get(AgentPydantic, agent_id)
@@ -52,7 +75,11 @@ def update_agent(
 
 
 @router.delete("/{agent_id}")
-def delete_agent(agent_id: int, session: Session = Depends(get_session)):
+async def delete_agent(
+    agent_id: int,
+    session: Session = Depends(get_session),
+    _: User = Depends(verify_admin),
+):
     """Delete a specific agent"""
     agent = session.get(AgentPydantic, agent_id)
     if not agent:

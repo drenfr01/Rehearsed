@@ -3,12 +3,26 @@ from fastapi import APIRouter, HTTPException, Depends
 from sqlmodel import Session, select
 from server.models.agent_model import Scenario
 from server.dependencies.database import get_session
+from server.routers.login_router import get_current_active_user
+from server.models.user_model import User
 
 router = APIRouter(prefix="/scenarios", tags=["scenarios_crud"])
 
 
+async def verify_admin(current_user: User = Depends(get_current_active_user)):
+    if not current_user.admin:
+        raise HTTPException(
+            status_code=403, detail="Not enough permissions. Admin access required."
+        )
+    return current_user
+
+
 @router.post("/", response_model=Scenario)
-def create_scenario(scenario: Scenario, session: Session = Depends(get_session)):
+async def create_scenario(
+    scenario: Scenario,
+    session: Session = Depends(get_session),
+    _: User = Depends(verify_admin),
+):
     """Create a new scenario"""
     session.add(scenario)
     session.commit()
@@ -17,14 +31,20 @@ def create_scenario(scenario: Scenario, session: Session = Depends(get_session))
 
 
 @router.get("/", response_model=List[Scenario])
-def get_scenarios(session: Session = Depends(get_session)):
+async def get_scenarios(
+    session: Session = Depends(get_session), _: User = Depends(verify_admin)
+):
     """Get all scenarios"""
     scenarios = session.exec(select(Scenario)).all()
     return scenarios
 
 
 @router.get("/{scenario_id}", response_model=Scenario)
-def get_scenario(scenario_id: int, session: Session = Depends(get_session)):
+async def get_scenario(
+    scenario_id: int,
+    session: Session = Depends(get_session),
+    _: User = Depends(verify_admin),
+):
     """Get a specific scenario by ID"""
     scenario = session.get(Scenario, scenario_id)
     if not scenario:
@@ -33,8 +53,11 @@ def get_scenario(scenario_id: int, session: Session = Depends(get_session)):
 
 
 @router.put("/{scenario_id}", response_model=Scenario)
-def update_scenario(
-    scenario_id: int, scenario_update: Scenario, session: Session = Depends(get_session)
+async def update_scenario(
+    scenario_id: int,
+    scenario_update: Scenario,
+    session: Session = Depends(get_session),
+    _: User = Depends(verify_admin),
 ):
     """Update a specific scenario"""
     db_scenario = session.get(Scenario, scenario_id)
@@ -52,7 +75,11 @@ def update_scenario(
 
 
 @router.delete("/{scenario_id}")
-def delete_scenario(scenario_id: int, session: Session = Depends(get_session)):
+async def delete_scenario(
+    scenario_id: int,
+    session: Session = Depends(get_session),
+    _: User = Depends(verify_admin),
+):
     """Delete a specific scenario"""
     scenario = session.get(Scenario, scenario_id)
     if not scenario:
