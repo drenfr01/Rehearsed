@@ -11,27 +11,20 @@ interface Scenario {
 }
 
 export default function ScenarioSelection() {
-  const [selectedScenario, setSelectedScenario] = useState("");
-  const [description, setDescription] = useState("");
+  const [selectedScenario, setSelectedScenario] = useState(-1);
   const [setScenario] = useSetScenarioMutation();
   const { data, error, isFetching } = useFetchScenariosQuery("");
   const navigate = useNavigate();
 
   const handleScenarioChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const scenarioId = e.target.value;
+    const scenarioId = parseInt(e.target.value);
     setSelectedScenario(scenarioId);
-    console.log(data[scenarioId]);
-    if (scenarioId && data) {
-      setDescription(data[scenarioId].description);
-    } else {
-      setDescription("");
-    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (selectedScenario) {
-      setScenario(selectedScenario);
+      setScenario(selectedScenario.toString());
       navigate(`/scenario-introduction`);
     } else {
       console.error("No scenario selected");
@@ -56,7 +49,7 @@ export default function ScenarioSelection() {
                 value={selectedScenario}
                 onChange={handleScenarioChange}
               >
-                <option value="">Choose a scenario</option>
+                <option value="-1">Choose a scenario</option>
                 {Object.entries(scenarios).map(([id, scenario]) => (
                   <option key={id} value={id}>
                     {scenario.name}
@@ -73,7 +66,7 @@ export default function ScenarioSelection() {
             <textarea
               className="textarea"
               name="description"
-              value={description}
+              value={scenarios[selectedScenario]?.description || ""}
               readOnly
               placeholder="Scenario description will appear here..."
             />
