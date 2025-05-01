@@ -1,4 +1,3 @@
-from google.adk.agents import Agent
 from google.adk.runners import Runner
 
 from server.agents.agent import call_agent_async

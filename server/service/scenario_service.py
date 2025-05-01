@@ -1,6 +1,7 @@
-from server.models.agent_model import Scenario
-from server.dependencies.database import engine
 from sqlmodel import Session, select
+
+from server.dependencies.database import engine
+from server.models.agent_model import Scenario
 
 
 class ScenarioService:

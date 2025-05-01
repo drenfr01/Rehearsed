@@ -5,12 +5,11 @@ from google.adk.agents.run_config import RunConfig
 from google.adk.runners import Runner
 from google.adk.sessions import Session
 from google.adk.sessions.database_session_service import DatabaseSessionService
+from sqlmodel import select
 
 from server.dependencies.database import engine
-from server.service.scenario_service import ScenarioService
-from sqlmodel import select, Session
-
 from server.models.agent_model import AgentPydantic, SubAgentLink
+from server.service.scenario_service import ScenarioService
 
 
 class AgentService:
