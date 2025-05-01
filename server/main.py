@@ -16,6 +16,9 @@ from server.routers import (
 from server.service.gemini_service import GeminiService
 from server.service.scenario_service import ScenarioService
 
+from server.routers.admin.scenarios_crud import router as scenarios_crud_router
+from server.routers.admin.agents_crud import router as agents_crud_router
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -49,6 +52,10 @@ app.include_router(conversation_router.router)
 app.include_router(scenario_router.router)
 app.include_router(agent_router.router)
 app.include_router(login_router.router)
+
+# CRUD routers for admin
+app.include_router(scenarios_crud_router)
+app.include_router(agents_crud_router)
 
 
 @app.get("/")

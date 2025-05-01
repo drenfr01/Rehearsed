@@ -11,8 +11,11 @@ engine = create_engine(sqlite_url, connect_args={"check_same_thread": False})
 
 
 def get_session():
-    with Session(engine) as session:
+    session = Session(engine)
+    try:
         yield session
+    finally:
+        session.close()
 
 
 def initialize_clean_db():

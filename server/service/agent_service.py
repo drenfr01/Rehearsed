@@ -7,7 +7,7 @@ from google.adk.sessions import Session
 from google.adk.sessions.database_session_service import DatabaseSessionService
 from sqlmodel import select
 
-from server.dependencies.database import engine
+from server.dependencies.database import engine, get_session
 from server.models.agent_model import AgentPydantic, SubAgentLink
 from server.service.scenario_service import ScenarioService
 
@@ -27,7 +27,7 @@ class AgentService:
     def get_root_agent_by_scenario_id(
         self, scenario_id: int
     ) -> tuple[AgentPydantic, Agent]:
-        with Session(engine) as session:
+        with get_session() as session:
             statement = select(AgentPydantic).where(
                 AgentPydantic.scenario_id == scenario_id,
                 AgentPydantic.name == "root_agent",
@@ -41,7 +41,7 @@ class AgentService:
             )
 
     def get_agents(self, agents: list[int]) -> list[Agent]:
-        with Session(engine) as session:
+        with get_session() as session:
             statement = select(AgentPydantic).where(AgentPydantic.id.in_(agents))
             agents_pydantic = session.exec(statement).all()
             agents = []
@@ -57,7 +57,7 @@ class AgentService:
             return agents
 
     def get_sub_agent_ids(self, root_agent_id: int) -> list[int]:
-        with Session(engine) as session:
+        with get_session() as session:
             statement = select(SubAgentLink).where(
                 SubAgentLink.root_agent_id == root_agent_id
             )
