@@ -22,12 +22,12 @@ async def lifespan(app: FastAPI):
     # TODO: need to change this to more persistent storage, right now just starting with clean db every time
     initialize_clean_db()
     initialize_all_sample_data()
-    # TODO: probably factor these to Depends in the individual routes
-    # scenario_service = ScenarioService()
-    # gemini_service = GeminiService(scenario_service)
+
+    scenario_service = ScenarioService()
+    gemini_service = GeminiService(scenario_service)
     yield {
-        # "gemini_service": gemini_service,
-        # "scenario_service": scenario_service,
+        "gemini_service": gemini_service,
+        "scenario_service": scenario_service,
     }
 
 

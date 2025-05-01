@@ -42,7 +42,7 @@ class GeminiService:
         if user_id not in self.temp_client_messages:
             self.temp_client_messages[user_id] = []
 
-        scenario_data = self.scenario_service.get_scenario_data()
+        scenario_data = self.scenario_service.get_current_scenario()
 
         response = self.client.models.generate_content(
             model=self.model_name,
@@ -82,7 +82,7 @@ class GeminiService:
         """
 
         self.temp_client_messages[user_id].append(Message(message=message, role="user"))
-        scenario_data = self.scenario_service.get_scenario_data()
+        scenario_data = self.scenario_service.get_current_scenario()
         response = self.client.models.generate_content(
             model=self.model_name,
             contents=[types.Part.from_text(text=message)],

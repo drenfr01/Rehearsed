@@ -1,3 +1,4 @@
+from pydantic import BaseModel
 from sqlmodel import Field, SQLModel
 
 
@@ -8,6 +9,10 @@ class Scenario(SQLModel, table=True):
     overview: str = Field(default=None)
     system_instructions: str = Field(default=None)
     initial_prompt: str = Field(default=None)
+
+
+class SetScenarioData(BaseModel):
+    scenario_id: int
 
 
 # Name to avoid collison with ADK Agent Class
