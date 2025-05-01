@@ -4,11 +4,12 @@ from google.adk.runners import Runner
 from server.agents.agent import call_agent_async
 from server.models.agent_interface import Conversation, ConversationTurn
 from server.service.agent_service import AgentService
+from server.service.scenario_service import ScenarioService
 
 
 class AgentServiceRequest(AgentService):
-    def __init__(self, root_agent: Agent):
-        super().__init__(root_agent=root_agent)
+    def __init__(self, scenario_service: ScenarioService):
+        super().__init__(scenario_service=scenario_service)
 
     async def request_agent_response(
         self,

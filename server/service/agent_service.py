@@ -6,9 +6,15 @@ from google.adk.runners import Runner
 from google.adk.sessions import Session
 from google.adk.sessions.database_session_service import DatabaseSessionService
 
+from server.dependencies.database import engine
+from server.service.scenario_service import ScenarioService
+from sqlmodel import select, Session
+
+from server.models.agent_model import AgentPydantic, SubAgentLink
+
 
 class AgentService:
-    def __init__(self, root_agent: Agent):
+    def __init__(self, scenario_service: ScenarioService):
         self.app_name = os.getenv("APP_NAME", "Time to Teach")
         # self.session_service = InMemorySessionService()
         db_url = os.getenv("DB_URL")
@@ -16,7 +22,65 @@ class AgentService:
         self.runner = None
         self.live_events = None
         self.live_request_queue = None
-        self.root_agent = root_agent
+        self.scenario_service = scenario_service
+        self.root_agent = self.load_root_agent()
+
+    def get_root_agent_by_scenario_id(
+        self, scenario_id: int
+    ) -> tuple[AgentPydantic, Agent]:
+        with Session(engine) as session:
+            statement = select(AgentPydantic).where(
+                AgentPydantic.scenario_id == scenario_id,
+                AgentPydantic.name == "root_agent",
+            )
+            agent_pydantic = session.exec(statement).one()
+            return agent_pydantic, Agent(
+                name=agent_pydantic.name,
+                description=agent_pydantic.description,
+                instruction=agent_pydantic.instruction,
+                model=agent_pydantic.model,
+            )
+
+    def get_agents(self, agents: list[int]) -> list[Agent]:
+        with Session(engine) as session:
+            statement = select(AgentPydantic).where(AgentPydantic.id.in_(agents))
+            agents_pydantic = session.exec(statement).all()
+            agents = []
+            for agent_pydantic in agents_pydantic:
+                agents.append(
+                    Agent(
+                        name=agent_pydantic.name,
+                        description=agent_pydantic.description,
+                        instruction=agent_pydantic.instruction,
+                        model=agent_pydantic.model,
+                    )
+                )
+            return agents
+
+    def get_sub_agent_ids(self, root_agent_id: int) -> list[int]:
+        with Session(engine) as session:
+            statement = select(SubAgentLink).where(
+                SubAgentLink.root_agent_id == root_agent_id
+            )
+            sub_agent_links = session.exec(statement).all()
+            return [link.sub_agent_id for link in sub_agent_links]
+
+    def load_root_agent(self) -> Agent:
+        print(f"Loading root agent for scenario {self.scenario_service.scenario.id}")
+        agent_pydantic, root_agent = self.get_root_agent_by_scenario_id(
+            self.scenario_service.scenario.id
+        )
+        print(f"Root agent: {root_agent.name}")
+        sub_agent_ids = self.get_sub_agent_ids(agent_pydantic.id)
+        sub_agents = self.get_agents(sub_agent_ids)
+        print(f"Sub agents: {[agent.name for agent in sub_agents]}")
+        return Agent(
+            name=root_agent.name,
+            description=root_agent.description,
+            instruction=root_agent.instruction,
+            model=root_agent.model,
+            sub_agents=sub_agents,
+        )
 
     def get_or_create_session(self, user_id: str, session_id: str) -> Session:
         session = self.session_service.get_session(

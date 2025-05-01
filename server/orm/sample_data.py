@@ -5,6 +5,9 @@ from server.dependencies.database import engine
 from server.models.agent_model import AgentPydantic, Scenario, SubAgentLink
 from server.models.user_model import UserInDB
 
+FLASH_MODEL = "gemini-2.5-flash-preview-04-17"
+PRO_MODEL = "gemini-2.5-pro-exp-03-25"
+
 
 def initialize_scenario_data() -> list[Scenario]:
     with open("orm/temp_scenario_data.yaml", "r") as f:
@@ -66,6 +69,7 @@ def load_student_agents(
                 name=student_agent["name"],
                 instruction=student_agent["instruction"],
                 description=student_agent["description"],
+                model=FLASH_MODEL,
             )
         )
 
@@ -86,6 +90,7 @@ def load_feedback_agent(
         name=feedback_agent_yaml["name"],
         instruction=feedback_agent_yaml["instruction"],
         description=feedback_agent_yaml["description"],
+        model=PRO_MODEL,
     )
 
 
@@ -102,6 +107,7 @@ def load_root_agent(file_path: str = "orm/root_agent.yaml") -> AgentPydantic:
         name=root_agent_yaml["name"],
         instruction=root_agent_yaml["instruction"],
         description=root_agent_yaml["description"],
+        model=PRO_MODEL,
     )
 
 

@@ -22,6 +22,7 @@ class AgentPydantic(SQLModel, table=True):
     name: str = Field(default=None)
     instruction: str = Field(default=None)
     description: str = Field(default=None)
+    model: str = Field(default=None)
 
 
 class SubAgentLink(SQLModel, table=True):
