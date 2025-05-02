@@ -27,14 +27,14 @@ export default function Header() {
             <Link to="/scenario-feedback" className="navbar-item">
               Scenario Feedback
             </Link>
-            {user?.admin && (
-              <Link to="/admin/agents" className="navbar-item">
-                Admin
-              </Link>
-            )}
           </div>
         </div>
         <div className="navbar-end">
+          {user?.admin && (
+            <Link to="/admin/agents" className="navbar-item">
+              Admin Agents
+            </Link>
+          )}
           <div className="navbar-item">
             <button className="button is-light" onClick={handleLogout}>
               Logout

@@ -100,11 +100,11 @@ const AgentManagement = () => {
               <thead>
                 <tr>
                   <th>ID</th>
+                  <th>Scenario ID</th>
                   <th>Name</th>
                   <th>Description</th>
-                  <th>Role</th>
-                  <th>Created At</th>
-                  <th>Updated At</th>
+                  <th>Instruction</th>
+                  <th>Model</th>
                   <th>Actions</th>
                 </tr>
               </thead>
@@ -112,11 +112,11 @@ const AgentManagement = () => {
                 {agents.map((agent) => (
                   <tr key={agent.id}>
                     <td>{agent.id}</td>
+                    <td>{agent.scenario_id}</td>
                     <td>{agent.name}</td>
                     <td>{agent.description}</td>
-                    <td>{agent.role}</td>
-                    <td>{agent.created_at}</td>
-                    <td>{agent.updated_at}</td>
+                    <td>{agent.instruction}</td>
+                    <td>{agent.model}</td>
                     <td>
                       <div className="buttons">
                         <button
@@ -140,6 +140,7 @@ const AgentManagement = () => {
           </div>
         )}
       </div>
+      {/* TODO: Modal for adding/editing agents. Move to component */}
 
       <div className={`modal ${open ? "is-active" : ""}`}>
         <div className="modal-background" onClick={() => setOpen(false)}></div>
@@ -155,6 +156,19 @@ const AgentManagement = () => {
             ></button>
           </header>
           <section className="modal-card-body">
+            <div className="field">
+              <label className="label">Scenario ID</label>
+              <div className="control">
+                <input
+                  className="input"
+                  type="text"
+                  value={editingAgent?.scenario_id || ""}
+                  onChange={(e) =>
+                    handleFieldChange("scenario_id", e.target.value)
+                  }
+                />
+              </div>
+            </div>
             <div className="field">
               <label className="label">Name</label>
               <div className="control">
@@ -180,13 +194,25 @@ const AgentManagement = () => {
               </div>
             </div>
             <div className="field">
-              <label className="label">Role</label>
+              <label className="label">Model</label>
               <div className="control">
                 <input
                   className="input"
                   type="text"
-                  value={editingAgent?.role || ""}
-                  onChange={(e) => handleFieldChange("role", e.target.value)}
+                  value={editingAgent?.model || ""}
+                  onChange={(e) => handleFieldChange("model", e.target.value)}
+                />
+              </div>
+            </div>
+            <div className="field">
+              <label className="label">Instruction</label>
+              <div className="control">
+                <textarea
+                  className="textarea"
+                  value={editingAgent?.instruction || ""}
+                  onChange={(e) =>
+                    handleFieldChange("instruction", e.target.value)
+                  }
                 />
               </div>
             </div>

@@ -13,9 +13,9 @@ export interface AgentResponse {
 
 export interface Agent {
   id: number;
+  scenario_id: number;
   name: string;
+  instruction: string;
   description: string;
-  role: string;
-  created_at: string;
-  updated_at: string;
+  model: string;
 }
