@@ -1,6 +1,7 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 import { Agent } from "../../interfaces/AgentInterface";
 
+// TODO: add tags and invalidate tags
 const agentsCrudAPI = createApi({
   reducerPath: "agentsCrud",
   baseQuery: fetchBaseQuery({

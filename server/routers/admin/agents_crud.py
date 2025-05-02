@@ -26,7 +26,7 @@ async def create_agent(
 @router.get("/", response_model=List[AgentPydantic])
 async def get_agents(
     session: Session = Depends(get_session), _: User = Depends(verify_admin)
-):
+) -> List[AgentPydantic]:
     """Get all agents"""
     agents = session.exec(select(AgentPydantic)).all()
     return agents
