@@ -4,6 +4,7 @@ import { scenarioAPI } from "./apis/scenarioAPI";
 import { agentAPI } from "./apis/agentAPI";
 import { authAPI } from "./apis/authAPI";
 import { agentsCrudAPI } from "./apis/agentsCrudAPI";
+import { scenariosCrudAPI } from "./apis/scenariosCrudAPI";
 import { setupListeners } from "@reduxjs/toolkit/query";
 
 const store = configureStore({
@@ -13,6 +14,7 @@ const store = configureStore({
     [agentAPI.reducerPath]: agentAPI.reducer,
     [authAPI.reducerPath]: authAPI.reducer,
     [agentsCrudAPI.reducerPath]: agentsCrudAPI.reducer,
+    [scenariosCrudAPI.reducerPath]: scenariosCrudAPI.reducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware()
@@ -20,7 +22,8 @@ const store = configureStore({
       .concat(scenarioAPI.middleware)
       .concat(agentAPI.middleware)
       .concat(authAPI.middleware)
-      .concat(agentsCrudAPI.middleware),
+      .concat(agentsCrudAPI.middleware)
+      .concat(scenariosCrudAPI.middleware),
 });
 
 // window.store = store;
@@ -28,6 +31,10 @@ const store = configureStore({
 setupListeners(store.dispatch);
 
 export default store;
+export { store };
+export type RootState = ReturnType<typeof store.getState>;
+export type AppDispatch = typeof store.dispatch;
+
 export {
   usePostMessageMutation,
   useFetchMessagesQuery,

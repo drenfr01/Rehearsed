@@ -31,9 +31,14 @@ export default function Header() {
         </div>
         <div className="navbar-end">
           {user?.admin && (
-            <Link to="/admin/agents" className="navbar-item">
-              Admin Agents
-            </Link>
+            <>
+              <Link to="/admin/scenarios" className="navbar-item">
+                Admin Scenarios
+              </Link>
+              <Link to="/admin/agents" className="navbar-item">
+                Admin Agents
+              </Link>
+            </>
           )}
           <div className="navbar-item">
             <button className="button is-light" onClick={handleLogout}>
