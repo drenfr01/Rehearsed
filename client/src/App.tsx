@@ -5,11 +5,19 @@ import AgentSimulation from "./pages/AgentSimulation";
 import ScenarioIntroduction from "./pages/ScenarioIntroduction";
 import ScenarioFeedback from "./pages/ScenarioFeedback";
 import ScenarioSelection from "./pages/ScenarioSelection";
+import Login from "./pages/Login";
+import AgentManagement from "./pages/AgentManagement";
+import ProtectedRoute from "./components/ProtectedRoute";
+import AdminRoute from "./components/AdminRoute";
 
 const router = createBrowserRouter([
   {
     path: "/",
-    element: <Root />,
+    element: (
+      <ProtectedRoute>
+        <Root />
+      </ProtectedRoute>
+    ),
     children: [
       {
         index: true,
@@ -27,7 +35,19 @@ const router = createBrowserRouter([
         path: "scenario-feedback",
         element: <ScenarioFeedback />,
       },
+      {
+        path: "admin/agents",
+        element: (
+          <AdminRoute>
+            <AgentManagement />
+          </AdminRoute>
+        ),
+      },
     ],
+  },
+  {
+    path: "/login",
+    element: <Login />,
   },
 ]);
 
