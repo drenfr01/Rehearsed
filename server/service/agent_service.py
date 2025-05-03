@@ -16,8 +16,8 @@ class AgentService:
     def __init__(self, scenario_service: ScenarioService):
         self.app_name = os.getenv("APP_NAME", "Time to Teach")
         # self.session_service = InMemorySessionService()
-        db_url = os.getenv("DB_URL")
-        self.session_service = DatabaseSessionService(db_url=db_url)
+        db_url = os.getenv("DB_PATH")
+        self.session_service = DatabaseSessionService(db_url=f"sqlite:///{db_url}")
         self.runner = None
         self.live_events = None
         self.live_request_queue = None

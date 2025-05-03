@@ -10,7 +10,7 @@ from server.service.scenario_service import ScenarioService
 
 # TODO: move to ORM layer with DB call
 def load_feedback_prompt() -> str:
-    with open("orm/feedback_prompt.yaml", "r") as f:
+    with open("server/orm/feedback_prompt.yaml", "r") as f:
         return yaml.safe_load(f)["prompt"]
 
 

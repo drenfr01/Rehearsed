@@ -2,9 +2,11 @@ import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 import { SummarizeFeedbackRequest } from "../../interfaces/MessageInterface";
 import { AgentRequest } from "../../interfaces/AgentInterface";
 
+const host = import.meta.env.VITE_SERVER_HOST;
+
 const agentAPI = createApi({
   reducerPath: "agent",
-  baseQuery: fetchBaseQuery({ baseUrl: "http://127.0.0.1:8000/agent" }),
+  baseQuery: fetchBaseQuery({ baseUrl: host + "/agent" }),
   tagTypes: ["Conversation"],
   endpoints(builder) {
     return {

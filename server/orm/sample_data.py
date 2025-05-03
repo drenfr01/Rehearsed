@@ -10,7 +10,7 @@ PRO_MODEL = "gemini-2.5-pro-exp-03-25"
 
 
 def initialize_scenario_data() -> list[Scenario]:
-    with open("orm/temp_scenario_data.yaml", "r") as f:
+    with open("server/orm/temp_scenario_data.yaml", "r") as f:
         scenario_data_yaml = safe_load(f)
 
     scenarios = []
@@ -55,7 +55,7 @@ def initialize_sample_user_data() -> None:
 
 
 def load_student_agents(
-    file_path: str = "orm/student_agents.yaml",
+    file_path: str = "server/orm/student_agents.yaml",
 ) -> list[AgentPydantic]:
     print(f"Loading student agent data from {file_path}")
     with open(file_path, "r") as f:
@@ -80,7 +80,7 @@ def load_student_agents(
 
 # TODO: make this a deterministically run agent with appropriate session
 def load_feedback_agent(
-    file_path: str = "orm/feedback_agent.yaml",
+    file_path: str = "server/orm/feedback_agent.yaml",
 ) -> AgentPydantic:
     print(f"Loading feedback agent data from {file_path}")
     with open(file_path, "r") as f:
@@ -98,7 +98,7 @@ def load_feedback_agent(
 
 # TODO: I think I can just parameterize this with the root agent name and
 # load it from the database
-def load_root_agent(file_path: str = "orm/root_agent.yaml") -> AgentPydantic:
+def load_root_agent(file_path: str = "server/orm/root_agent.yaml") -> AgentPydantic:
     print(f"Loading root agent data from {file_path}")
     with open(file_path, "r") as f:
         root_agent_yaml = safe_load(f)

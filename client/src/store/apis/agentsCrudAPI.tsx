@@ -2,10 +2,12 @@ import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 import { Agent } from "../../interfaces/AgentInterface";
 
 // TODO: add tags and invalidate tags
+const host = import.meta.env.VITE_SERVER_HOST;
+
 const agentsCrudAPI = createApi({
   reducerPath: "agentsCrud",
   baseQuery: fetchBaseQuery({
-    baseUrl: "http://127.0.0.1:8000/agents_crud",
+    baseUrl: host + "/agents_crud",
     prepareHeaders: (headers) => {
       // Add any necessary headers here
       const token = localStorage.getItem("token");

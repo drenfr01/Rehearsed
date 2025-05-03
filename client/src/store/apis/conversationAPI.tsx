@@ -4,9 +4,11 @@ import {
   SummarizeFeedbackRequest,
 } from "../../interfaces/MessageInterface";
 
+const host = import.meta.env.VITE_SERVER_HOST;
+
 const conversationAPI = createApi({
   reducerPath: "conversation",
-  baseQuery: fetchBaseQuery({ baseUrl: "http://127.0.0.1:8000/conversation" }),
+  baseQuery: fetchBaseQuery({ baseUrl: host + "/conversation" }),
   tagTypes: ["Messages"],
   endpoints(builder) {
     return {

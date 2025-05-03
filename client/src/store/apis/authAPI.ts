@@ -17,10 +17,13 @@ interface User {
   admin: boolean;
 }
 
+const host = import.meta.env.VITE_SERVER_HOST;
+console.log("Host: ", host);
+
 export const authAPI = createApi({
   reducerPath: 'authAPI',
   baseQuery: fetchBaseQuery({ 
-    baseUrl: 'http://127.0.0.1:8000/user',
+    baseUrl: host + '/user',
     prepareHeaders: (headers) => {
       const token = localStorage.getItem('token');
       if (token) {

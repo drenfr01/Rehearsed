@@ -5,7 +5,7 @@ FEEDBACK_AGENT_MODEL = "gemini-2.5-flash-preview-04-17"
 # FEEDBACK_AGENT_MODEL = "gemini-2.5-pro-exp-03-25"
 
 
-def load_feedback_agent(file_path: str = "orm/feedback_agent.yaml") -> Agent:
+def load_feedback_agent(file_path: str = "server/orm/feedback_agent.yaml") -> Agent:
     print(f"Loading root agent from {file_path}")
     with open(file_path, "r") as f:
         feedback_agent_yaml = safe_load(f)
