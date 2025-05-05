@@ -49,11 +49,12 @@ export default function ChatMessage({ message }: { message: AgentResponse }) {
   return (
     <div className="container is-fluid mb-4">
       <div className="columns is-mobile">
-        <div className="column is-10 is-offset-1">
+        <div
+          className={`column is-10 ${
+            isUser ? "is-offset-1" : "is-offset-1 ml-auto"
+          }`}
+        >
           <article className={`message ${isUser ? "is-primary" : "is-info"}`}>
-            <div className="message-header">
-              <p>{isUser ? "You" : message.author}</p>
-            </div>
             <div className="message-body">
               <div className="media">
                 {isUser ? (
