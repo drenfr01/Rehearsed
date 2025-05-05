@@ -2,6 +2,7 @@ import asyncio
 from fastapi import APIRouter, Depends, Request, WebSocket, File, UploadFile, Form
 from pydantic import BaseModel
 from typing import Optional
+from fastapi.responses import JSONResponse
 
 from server.agents.agent_streaming import streaming_root_agent
 from server.agents.feedback_agent import feedback_agent
@@ -9,6 +10,7 @@ from server.models.agent_interface import Conversation
 from server.service.agent_service_request import AgentServiceRequest
 from server.service.agent_service_streaming import AgentServiceStreaming
 from server.service.speech_to_text_service import SpeechToTextService
+from server.service.text_to_speech_service import TextToSpeechService
 
 from server.service.agent_service import AgentType
 
@@ -18,8 +20,9 @@ router = APIRouter(
     responses={404: {"description": "Not found"}},
 )
 
-# Initialize the speech-to-text service
+# Initialize the services
 speech_to_text_service = SpeechToTextService()
+text_to_speech_service = TextToSpeechService()
 
 
 async def get_agent_service_request(request: Request) -> AgentServiceRequest:
@@ -76,11 +79,24 @@ async def request_agent_response(
             # Combine the transcribed text with the original message
             message = transcript
 
-    return await agent_service.request_agent_response(
+    # Get the agent's response
+    response = await agent_service.request_agent_response(
         agent_service.runner,
         user_id,
         session_id,
         message,
+    )
+
+    # Convert the response to speech
+    audio_content = await text_to_speech_service.text_to_speech(response)
+    print(f"Audio content generated: {audio_content is not None}")
+
+    # Return both the text response and audio content
+    return JSONResponse(
+        content={
+            "text": response,
+            "audio": audio_content.decode("latin1") if audio_content else None,
+        }
     )
 
 

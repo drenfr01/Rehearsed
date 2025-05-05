@@ -1,5 +1,5 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
-import { AgentRequest } from "../../interfaces/AgentInterface";
+import { AgentRequest, AgentResponse } from "../../interfaces/AgentInterface";
 
 const host = import.meta.env.VITE_SERVER_HOST;
 
@@ -22,7 +22,7 @@ const agentAPI = createApi({
           };
         },
       }),
-      postRequest: builder.mutation({
+      postRequest: builder.mutation<AgentResponse, AgentRequest>({
         invalidatesTags: (result, error, arg) => [
           { type: "Conversation", id: `${arg.userId}-${arg.sessionId}` },
         ],
@@ -43,6 +43,22 @@ const agentAPI = createApi({
             formData: true,
           };
         },
+        transformResponse: (response: {
+          text: string;
+          audio: string | null;
+        }) => {
+          console.log("API Response received:", {
+            hasText: !!response.text,
+            hasAudio: !!response.audio,
+          });
+          return {
+            content: response.text,
+            role: "system",
+            author: "Assistant",
+            message_id: null,
+            audio: response.audio || undefined,
+          };
+        },
       }),
       fetchConversation: builder.query({
         providesTags: (result, error, arg) => [
@@ -58,6 +74,26 @@ const agentAPI = createApi({
           return {
             url: `/conversation/${userId}/${sessionId}`,
             method: "GET",
+          };
+        },
+        transformResponse: (response: {
+          turns: Array<{
+            content: string;
+            role: string;
+            author: string;
+            message_id: string;
+            audio: string | null;
+          }>;
+        }) => {
+          console.log("Conversation response:", response);
+          return {
+            turns: response.turns.map((turn) => ({
+              content: turn.content,
+              role: turn.role,
+              author: turn.author,
+              message_id: turn.message_id,
+              audio: turn.audio || undefined,
+            })),
           };
         },
       }),
@@ -79,9 +115,9 @@ const agentAPI = createApi({
 });
 
 export const {
+  useStartSessionMutation,
   usePostRequestMutation,
   useFetchConversationQuery,
   useProvideAgentFeedbackMutation,
-  useStartSessionMutation,
 } = agentAPI;
 export { agentAPI };
