@@ -89,7 +89,6 @@ async def request_agent_response(
 
     # Convert the response to speech
     audio_content = await text_to_speech_service.text_to_speech(response)
-    print(f"Audio content generated: {audio_content is not None}")
 
     # Return both the text response and audio content
     return JSONResponse(
