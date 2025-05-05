@@ -1,19 +1,37 @@
 import ChatMessage from "../components/ChatMessage";
 import ChatOverview from "../components/ChatOverview";
 import ChatInput from "../components/ChatInput";
-
-import { ResponseMessage } from "../interfaces/MessageInterface";
+import { AgentResponse } from "../interfaces/AgentInterface";
 import {
-  usePostMessageMutation,
-  useFetchMessagesQuery,
-  useProvideUserFeedbackMutation,
+  usePostRequestMutation,
+  useFetchConversationQuery,
+  useProvideAgentFeedbackMutation,
 } from "../store";
+import { useEffect, useState } from "react";
 
 export default function Simulation() {
-  const [postMessage, results] = usePostMessageMutation();
-  const { data, error, isFetching } = useFetchMessagesQuery("1");
-  const [provideUserFeedback] = useProvideUserFeedbackMutation({
-    fixedCacheKey: "provideUserFeedback",
+  const userId = "1"; // TODO: Get from auth context
+  const [sessionId, setSessionId] = useState<string>("");
+
+  useEffect(() => {
+    // Generate a new session ID if one doesn't exist in localStorage
+    const storedSessionId = localStorage.getItem("sessionId");
+    if (!storedSessionId) {
+      const newSessionId = crypto.randomUUID();
+      localStorage.setItem("sessionId", newSessionId);
+      setSessionId(newSessionId);
+    } else {
+      setSessionId(storedSessionId);
+    }
+  }, []);
+
+  const [postRequest, results] = usePostRequestMutation();
+  const { data, error, isFetching } = useFetchConversationQuery({
+    userId,
+    sessionId,
+  });
+  const [provideAgentFeedback] = useProvideAgentFeedbackMutation({
+    fixedCacheKey: "provideAgentFeedback",
   });
 
   let message_content;
@@ -24,22 +42,32 @@ export default function Simulation() {
   } else {
     message_content = (
       <div>
-        {data?.map((message: ResponseMessage) => (
+        {data?.turns.map((message: AgentResponse) => (
           <ChatMessage key={message.message_id} message={message} />
         ))}
       </div>
     );
   }
 
-  // TODO: add in loading spinner
   let content = (
     <ChatInput
-      postMessage={postMessage}
-      provideUserFeedback={provideUserFeedback}
+      postRequest={postRequest}
+      provideAgentFeedback={provideAgentFeedback}
+      userId={userId}
+      sessionId={sessionId}
     />
   );
   if (results.isLoading) {
-    content = <div>Loading...</div>;
+    content = (
+      <div className="has-text-centered">
+        <div className="mb-4">
+          <span className="icon is-large">
+            <i className="fas fa-spinner fa-pulse fa-2x"></i>
+          </span>
+        </div>
+        <p className="has-text-grey">Sending your message...</p>
+      </div>
+    );
   }
   return (
     <section className="hero is-fullheight">

@@ -5,51 +5,58 @@ import ReactMarkdown from "react-markdown";
 export default function ChatMessage({ message }: { message: AgentResponse }) {
   const isUser = message.role === "user";
 
-  let iconContent;
-  if (isUser) {
-    iconContent = (
-      <div className="media-left">
-        <figure className="image is-64x64">
-          <FaPerson size={48} />
-        </figure>
-      </div>
-    );
-  } else {
-    iconContent = (
-      <div className="media-right">
-        <figure className="image is-64x64">
-          <FaRobot size={48} />
-        </figure>
-      </div>
-    );
-  }
-
   return (
     <div
-      className={`box ${
-        isUser ? "has-background-primary-light" : "has-background-info-light"
-      } mb-4`}
+      className={`columns ${
+        isUser ? "is-justify-content-flex-start" : "is-justify-content-flex-end"
+      }`}
     >
-      <article className="media">
-        {iconContent}
-        <div className="columns is-vcentered">
-          <div className="column is-narrow">
-            <span
-              className={`icon is-large ${
-                isUser ? "has-text-primary" : "has-text-info"
-              }`}
-            >
-              <i className={`fas fa-${isUser ? "user" : "robot"} fa-2x`}></i>
-            </span>
-            <span className="has-text-weight-bold">{message.author}</span>
-          </div>
-          <div className="column">
-            <div className="has-text-left">
-              <ReactMarkdown>{message.content}</ReactMarkdown>
-            </div>
-          </div>
+      <div className="column is-10">
+        <div
+          className={`box ${
+            isUser
+              ? "has-background-primary-light"
+              : "has-background-info-light"
+          } mb-4`}
+        >
+          <article className="media">
+            {isUser ? (
+              <>
+                <div className="media-left mr-4">
+                  <div className="is-flex is-flex-direction-column is-align-items-center">
+                    <figure className="image is-48x48">
+                      <FaPerson size={32} />
+                    </figure>
+                  </div>
+                </div>
+                <div className="media-content">
+                  <div className="content">
+                    <ReactMarkdown>{message.content}</ReactMarkdown>
+                  </div>
+                </div>
+              </>
+            ) : (
+              <>
+                <div className="media-content">
+                  <div className="content">
+                    <ReactMarkdown>{message.content}</ReactMarkdown>
+                  </div>
+                </div>
+                <div className="media-right ml-4">
+                  <div className="is-flex is-flex-direction-column is-align-items-center">
+                    <figure className="image is-48x48">
+                      <FaRobot size={32} />
+                    </figure>
+                    <span className="has-text-weight-normal is-italic is-size-7 has-text-grey mt-1">
+                      {message.author}
+                    </span>
+                  </div>
+                </div>
+              </>
+            )}
+          </article>
         </div>
-      </article>
+      </div>
     </div>
   );
 }

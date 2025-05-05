@@ -7,12 +7,28 @@ import {
   useFetchConversationQuery,
   useProvideAgentFeedbackMutation,
 } from "../store";
-import { useId } from "react";
+import { useEffect, useState } from "react";
 
 export default function AgentSimulation() {
   // TODO: these will be set by user login
   const userId = "18";
-  const sessionId = useId();
+  const [sessionId, setSessionId] = useState<string>("");
+
+  const generateNewSessionId = () => {
+    const newSessionId = crypto.randomUUID();
+    localStorage.setItem("sessionId", newSessionId);
+    setSessionId(newSessionId);
+  };
+
+  useEffect(() => {
+    // Generate a new session ID if one doesn't exist in localStorage
+    const storedSessionId = localStorage.getItem("sessionId");
+    if (!storedSessionId) {
+      generateNewSessionId();
+    } else {
+      setSessionId(storedSessionId);
+    }
+  }, []);
 
   const [postRequest, results] = usePostRequestMutation();
   const { data, error, isFetching } = useFetchConversationQuery({
@@ -25,7 +41,20 @@ export default function AgentSimulation() {
 
   let message_content;
   if (isFetching) {
-    message_content = <div>Loading...</div>;
+    message_content = (
+      <div className="container">
+        <div className="columns is-centered">
+          <div className="column is-half">
+            <div className="box" style={{ marginTop: "2rem" }}>
+              <div className="has-text-centered">
+                <div className="button is-loading is-large is-white"></div>
+                <p className="mt-3">Loading...</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
   } else if (error) {
     message_content = <div>Error: {error.toString()}</div>;
   } else {
@@ -38,7 +67,29 @@ export default function AgentSimulation() {
         </div>
       );
     } else {
-      message_content = <div>Start your conversation!</div>;
+      message_content = (
+        <div className="container">
+          <div className="columns is-centered">
+            <div className="column is-half">
+              <div
+                className="box has-text-centered"
+                style={{ marginTop: "2rem" }}
+              >
+                <h2 className="title is-4 mb-4">Welcome to Time to Teach!</h2>
+                <p className="subtitle is-6">
+                  Start your conversation with the AI agent to begin your
+                  teaching journey.
+                </p>
+                <div className="mt-4">
+                  <span className="icon is-large">
+                    <i className="fas fa-robot fa-2x"></i>
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      );
     }
   }
 
@@ -52,12 +103,33 @@ export default function AgentSimulation() {
     />
   );
   if (results.isLoading) {
-    content = <div>Loading...</div>;
+    content = (
+      <div className="container">
+        <div className="columns is-centered">
+          <div className="column is-half">
+            <div className="box" style={{ marginTop: "2rem" }}>
+              <div className="has-text-centered">
+                <div className="button is-loading is-large is-white"></div>
+                <p className="mt-3">Loading...</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
   }
   return (
     <section className="hero is-fullheight">
       <div className="hero-head has-text-centered">
-        <ChatOverview />
+        <div className="container">
+          <ChatOverview />
+          <button
+            className="button is-primary is-small mt-2"
+            onClick={generateNewSessionId}
+          >
+            New Session
+          </button>
+        </div>
       </div>
       <div className="hero-body">
         <div className="container">{message_content}</div>

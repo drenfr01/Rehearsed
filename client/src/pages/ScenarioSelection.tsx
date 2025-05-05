@@ -1,20 +1,15 @@
 import { useState } from "react";
 import { useFetchScenariosQuery, useSetScenarioMutation } from "../store";
 import { useNavigate } from "react-router-dom";
-
-interface Scenario {
-  name: string;
-  description: string;
-  overview: string;
-  initial_prompt: string;
-  system_instructions: string;
-}
+import { Scenario } from "../interfaces/ScenarioInterface";
 
 export default function ScenarioSelection() {
-  const [selectedScenario, setSelectedScenario] = useState(-1);
+  const [selectedScenario, setSelectedScenario] = useState(0);
   const [setScenario] = useSetScenarioMutation();
   const { data, error, isFetching } = useFetchScenariosQuery("");
   const navigate = useNavigate();
+
+  let scenarios: Scenario[] = [];
 
   const handleScenarioChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const scenarioId = parseInt(e.target.value);
@@ -23,12 +18,8 @@ export default function ScenarioSelection() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (selectedScenario) {
-      setScenario(selectedScenario.toString());
-      navigate(`/scenario-introduction`);
-    } else {
-      console.error("No scenario selected");
-    }
+    setScenario(scenarios[selectedScenario].id.toString());
+    navigate(`/scenario-introduction`);
   };
 
   let content;
@@ -37,7 +28,7 @@ export default function ScenarioSelection() {
   } else if (error) {
     content = <div>Error: {error.toString()}</div>;
   } else {
-    const scenarios = (data as [Scenario]) || [];
+    scenarios = (data as [Scenario]) || [];
     content = (
       <form onSubmit={handleSubmit}>
         <div className="field">
@@ -49,7 +40,6 @@ export default function ScenarioSelection() {
                 value={selectedScenario}
                 onChange={handleScenarioChange}
               >
-                <option value="-1">Choose a scenario</option>
                 {Object.entries(scenarios).map(([id, scenario]) => (
                   <option key={id} value={id}>
                     {scenario.name}
@@ -74,13 +64,9 @@ export default function ScenarioSelection() {
         </div>
 
         <div className="field">
-          <div className="control">
-            <button
-              type="submit"
-              className="button is-primary"
-              disabled={!selectedScenario}
-            >
-              Submit Scenario
+          <div className="control has-text-centered">
+            <button type="submit" className="button is-primary is-large">
+              Select Scenario
             </button>
           </div>
         </div>
