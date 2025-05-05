@@ -9,9 +9,9 @@ from yaml import safe_load
 # adk web and HTTP commands
 # TODO: change to 2.5-pro-exp-03-25 or 2.5-flash-preview-04-17
 # ROOT_AGENT_MODEL = "gemini-2.5-pro-exp-03-25"
-ROOT_AGENT_MODEL = "gemini-2.5-flash-preview-04-17"
-STUDENT_AGENT_MODEL = "gemini-2.5-flash-preview-04-17"
-FEEDBACK_AGENT_MODEL = "gemini-2.5-flash-preview-04-17"
+ROOT_AGENT_MODEL = "gemini-2.5-pro-preview-03-25"
+STUDENT_AGENT_MODEL = "gemini-2.5-pro-preview-03-25"
+FEEDBACK_AGENT_MODEL = "gemini-2.5-pro-preview-03-25"
 
 
 # TODO: make this load from the database

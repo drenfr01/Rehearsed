@@ -5,8 +5,10 @@ from server.dependencies.database import engine
 from server.models.agent_model import AgentPydantic, Scenario, SubAgentLink
 from server.models.user_model import UserInDB
 
-FLASH_MODEL = "gemini-2.5-flash-preview-04-17"
-PRO_MODEL = "gemini-2.5-pro-exp-03-25"
+FLASH_MODEL = "gemini-2.5-pro-preview-03-25"
+# FLASH_MODEL = "gemini-2.5-flash-preview-04-17"
+# PRO_MODEL = "gemini-2.5-pro-preview-03-25"
+PRO_MODEL = "gemini-2.5-pro-preview-03-25"
 
 
 def initialize_scenario_data() -> list[Scenario]:
