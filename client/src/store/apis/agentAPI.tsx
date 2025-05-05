@@ -1,5 +1,4 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
-import { SummarizeFeedbackRequest } from "../../interfaces/MessageInterface";
 import { AgentRequest } from "../../interfaces/AgentInterface";
 
 const host = import.meta.env.VITE_SERVER_HOST;
@@ -57,13 +56,14 @@ const agentAPI = createApi({
         },
       }),
       provideAgentFeedback: builder.mutation({
-        query: (summarizeFeedbackRequest: SummarizeFeedbackRequest) => {
+        query: (agentRequest: AgentRequest) => {
           return {
             url: "/feedback",
             method: "POST",
             body: {
-              user_id: summarizeFeedbackRequest.userId,
-              session_id: summarizeFeedbackRequest.sessionId,
+              user_id: agentRequest.userId,
+              session_id: agentRequest.sessionId,
+              message: agentRequest.message,
             },
           };
         },

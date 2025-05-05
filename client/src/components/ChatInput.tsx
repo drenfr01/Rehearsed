@@ -29,13 +29,20 @@ export default function ChatInput({
     e: React.MouseEvent<HTMLButtonElement>
   ) => {
     e.preventDefault();
-    provideAgentFeedback({ userId: userId, sessionId: sessionId });
+    provideAgentFeedback({
+      message: "Feedback",
+      userId: userId,
+      sessionId: sessionId,
+    });
     navigate("/scenario-feedback");
   };
 
   return (
     <div className="container is-fluid">
-      <form onSubmit={handleSubmit} className="field has-addons">
+      <form
+        onSubmit={handleSubmit}
+        className="field has-addons has-addons-right"
+      >
         <div className="control is-expanded">
           <input
             className="input"
@@ -47,16 +54,16 @@ export default function ChatInput({
           />
         </div>
         <div className="control">
-          <button className="button is-primary" type="submit">
+          <button className="button is-primary mx-2" type="submit">
             Send
           </button>
         </div>
         <div className="control">
           <button
-            className="button is-danger"
+            className="button is-info"
             onClick={handleProvideUserFeedback}
           >
-            End Conversation
+            Feedback
           </button>
         </div>
       </form>
