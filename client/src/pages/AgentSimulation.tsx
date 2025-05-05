@@ -77,7 +77,7 @@ export default function AgentSimulation() {
               >
                 <h2 className="title is-4 mb-4">Welcome to Time to Teach!</h2>
                 <p className="subtitle is-6">
-                  Start your conversation with the AI agent to begin your
+                  Start your conversation with the students to begin your
                   teaching journey.
                 </p>
                 <div className="mt-4">
