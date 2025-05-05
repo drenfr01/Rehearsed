@@ -13,26 +13,58 @@ export default function ScenarioFeedback() {
 
   let content;
   if (results.isLoading) {
-    content = <div className="has-text-centered">Loading...</div>;
+    content = (
+      <div className="has-text-centered py-6">
+        <span className="icon is-large">
+          <i className="fas fa-spinner fa-pulse fa-2x"></i>
+        </span>
+        <p className="mt-2">Loading feedback...</p>
+      </div>
+    );
   } else if (results.error) {
     content = (
-      <div className="has-text-danger">Error: {results.error.toString()}</div>
+      <div className="notification is-danger is-light">
+        <span className="icon-text">
+          <span className="icon">
+            <i className="fas fa-exclamation-circle"></i>
+          </span>
+          <span>Error: {results.error.toString()}</span>
+        </span>
+      </div>
     );
   } else if (!results.data) {
     content = (
-      <div className="has-text-centered">
-        No feedback available yet. Please click the Feedback button in the
-        simulation to generate feedback.
+      <div className="notification is-info is-light">
+        <span className="icon-text">
+          <span className="icon">
+            <i className="fas fa-info-circle"></i>
+          </span>
+          <span>
+            No feedback available yet. Please click the Feedback button in the
+            simulation to generate feedback.
+          </span>
+        </span>
       </div>
     );
   } else {
-    content = <Markdown>{results.data}</Markdown>;
+    content = (
+      <div className="content">
+        <Markdown>{results.data}</Markdown>
+      </div>
+    );
   }
 
   return (
-    <div className="box">
-      <div className="label is-size-5 mb-4">Simulation Feedback</div>
-      {content}
+    <div className="box has-background-white-bis">
+      <h2 className="title is-4 has-text-primary mb-5 has-text-centered">
+        <span className="icon-text">
+          <span className="icon">
+            <i className="fas fa-comment-dots"></i>
+          </span>
+          <span>Simulation Feedback</span>
+        </span>
+      </h2>
+      <div className="px-6">{content}</div>
     </div>
   );
 }

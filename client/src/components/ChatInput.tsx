@@ -39,7 +39,10 @@ export default function ChatInput({
 
   return (
     <div className="container is-fluid">
-      <form onSubmit={handleSubmit} className="field has-addons">
+      <form
+        onSubmit={handleSubmit}
+        className="field has-addons has-addons-right"
+      >
         <div className="control is-expanded">
           <input
             className="input"
@@ -51,13 +54,13 @@ export default function ChatInput({
           />
         </div>
         <div className="control">
-          <button className="button is-primary" type="submit">
+          <button className="button is-primary mx-2" type="submit">
             Send
           </button>
         </div>
         <div className="control">
           <button
-            className="button is-danger"
+            className="button is-info"
             onClick={handleProvideUserFeedback}
           >
             Feedback
