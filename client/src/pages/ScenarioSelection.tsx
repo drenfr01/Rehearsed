@@ -64,8 +64,8 @@ export default function ScenarioSelection() {
         </div>
 
         <div className="field">
-          <div className="control">
-            <button type="submit" className="button is-primary">
+          <div className="control has-text-centered">
+            <button type="submit" className="button is-primary is-large">
               Select Scenario
             </button>
           </div>

@@ -18,17 +18,19 @@ export default function ScenarioIntroduction() {
         <div className="box">
           <h2 className="title is-2">Scenario Overview</h2>
           <div className="field">
+            <label className="label">Scenario Overview</label>
             <div className="control">
               <textarea
-                className="textarea"
+                className="textarea is-medium has-fixed-size"
                 readOnly
                 value={data?.overview}
                 rows={10}
+                style={{ resize: "none" }}
               />
             </div>
           </div>
           <div className="field">
-            <div className="control">
+            <div className="control has-text-centered">
               <button
                 className="button is-primary is-large"
                 onClick={() => navigate("/agent-simulation")}
