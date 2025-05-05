@@ -1,13 +1,14 @@
 import asyncio
-
-from fastapi import APIRouter, Depends, Request, WebSocket
+from fastapi import APIRouter, Depends, Request, WebSocket, File, UploadFile, Form
 from pydantic import BaseModel
+from typing import Optional
 
 from server.agents.agent_streaming import streaming_root_agent
 from server.agents.feedback_agent import feedback_agent
 from server.models.agent_interface import Conversation
 from server.service.agent_service_request import AgentServiceRequest
 from server.service.agent_service_streaming import AgentServiceStreaming
+from server.service.speech_to_text_service import SpeechToTextService
 
 from server.service.agent_service import AgentType
 
@@ -16,6 +17,9 @@ router = APIRouter(
     tags=["agent"],
     responses={404: {"description": "Not found"}},
 )
+
+# Initialize the speech-to-text service
+speech_to_text_service = SpeechToTextService()
 
 
 async def get_agent_service_request(request: Request) -> AgentServiceRequest:
@@ -53,19 +57,30 @@ async def start_session(
 
 @router.post("/request")
 async def request_agent_response(
-    agent_request: AgentRequest,
+    message: str = Form(...),
+    user_id: str = Form(...),
+    session_id: str = Form(...),
+    audio: Optional[UploadFile] = File(None),
     agent_service: AgentServiceRequest = Depends(get_agent_service_request),
 ):
-    # TODO: I don't love this, it seems brittle
-    # The issue is that each request gets a different AgentService. So
-    # the initialization in the below get request doesn't actually configure
-    # the agentservice for this route
-    agent_service.initialize_agent(agent_request.user_id, agent_request.session_id)
+    # Initialize the agent service
+    agent_service.initialize_agent(user_id, session_id)
+
+    # If there's an audio file, process it
+    if audio:
+        audio_content = await audio.read()
+        # Transcribe the audio
+        transcript = await speech_to_text_service.transcribe_audio(audio_content)
+
+        if transcript:
+            # Combine the transcribed text with the original message
+            message = transcript
+
     return await agent_service.request_agent_response(
         agent_service.runner,
-        agent_request.user_id,
-        agent_request.session_id,
-        agent_request.message,
+        user_id,
+        session_id,
+        message,
     )
 
 

@@ -63,8 +63,14 @@ export default function ChatInput({
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    postRequest({ message, userId: userId, sessionId: sessionId });
+    postRequest({
+      message,
+      userId: userId,
+      sessionId: sessionId,
+      audio: audioBlob || undefined,
+    });
     setMessage("");
+    setAudioBlob(null);
   };
 
   const handleProvideUserFeedback = (

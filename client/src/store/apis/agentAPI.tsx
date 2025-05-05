@@ -27,14 +27,20 @@ const agentAPI = createApi({
           { type: "Conversation", id: `${arg.userId}-${arg.sessionId}` },
         ],
         query: (agentRequest: AgentRequest) => {
+          const formData = new FormData();
+          formData.append("message", agentRequest.message);
+          formData.append("user_id", agentRequest.userId);
+          formData.append("session_id", agentRequest.sessionId);
+
+          if (agentRequest.audio) {
+            formData.append("audio", agentRequest.audio, "recording.webm");
+          }
+
           return {
             url: "/request",
             method: "POST",
-            body: {
-              message: agentRequest.message,
-              user_id: agentRequest.userId,
-              session_id: agentRequest.sessionId,
-            },
+            body: formData,
+            formData: true,
           };
         },
       }),

@@ -2,6 +2,7 @@ export interface AgentRequest {
   message: string;
   sessionId: string;
   userId: string;
+  audio?: Blob;
 }
 
 export interface AgentResponse {
