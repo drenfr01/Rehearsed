@@ -29,7 +29,11 @@ export default function ChatInput({
     e: React.MouseEvent<HTMLButtonElement>
   ) => {
     e.preventDefault();
-    provideAgentFeedback({ userId: userId, sessionId: sessionId });
+    provideAgentFeedback({
+      message: "Feedback",
+      userId: userId,
+      sessionId: sessionId,
+    });
     navigate("/scenario-feedback");
   };
 
@@ -56,7 +60,7 @@ export default function ChatInput({
             className="button is-danger"
             onClick={handleProvideUserFeedback}
           >
-            End Conversation
+            Feedback
           </button>
         </div>
       </form>

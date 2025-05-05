@@ -9,6 +9,8 @@ from server.models.agent_interface import Conversation
 from server.service.agent_service_request import AgentServiceRequest
 from server.service.agent_service_streaming import AgentServiceStreaming
 
+from server.service.agent_service import AgentType
+
 router = APIRouter(
     prefix="/agent",
     tags=["agent"],
@@ -17,7 +19,16 @@ router = APIRouter(
 
 
 async def get_agent_service_request(request: Request) -> AgentServiceRequest:
-    return AgentServiceRequest(scenario_service=request.state.scenario_service)
+    return AgentServiceRequest(
+        scenario_service=request.state.scenario_service, agent_type=AgentType.ROOT
+    )
+
+
+async def get_feedback_agent_service_request(request: Request) -> AgentServiceRequest:
+    return AgentServiceRequest(
+        scenario_service=request.state.scenario_service,
+        agent_type=AgentType.FEEDBACK,
+    )
 
 
 async def get_agent_service_streaming() -> AgentServiceStreaming:
@@ -69,23 +80,16 @@ async def get_conversation_content(
 
 @router.post("/feedback")
 async def request_feedback(
-    feedback_request: AgentRequest,
-    agent_service: AgentServiceRequest = Depends(get_agent_service_request),
+    agent_request: AgentRequest,
+    agent_service: AgentServiceRequest = Depends(get_feedback_agent_service_request),
 ):
-    print(f"Requesting feedback for session {feedback_request.session_id}")
-    runner = agent_service.get_agent_session(
-        user_id=feedback_request.user_id,
-        session_id=feedback_request.session_id,
-        root_agent=feedback_agent,
-    )
-
-    feedback_message = "Please provide feedback on the users conversation"
-    # TODO: figure out how to pass in feedback agent?
+    print(f"Requesting feedback for session {agent_request.session_id}")
+    agent_service.initialize_agent(agent_request.user_id, agent_request.session_id)
     return await agent_service.request_agent_response(
-        runner,
-        feedback_request.user_id,
-        feedback_request.session_id,
-        feedback_message,
+        agent_service.runner,
+        agent_request.user_id,
+        agent_request.session_id,
+        agent_request.message,
     )
 
 

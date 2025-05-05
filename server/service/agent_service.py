@@ -11,9 +11,18 @@ from server.dependencies.database import engine, get_session
 from server.models.agent_model import AgentPydantic, SubAgentLink
 from server.service.scenario_service import ScenarioService
 
+from enum import Enum
+
+
+class AgentType(Enum):
+    ROOT = "root"
+    FEEDBACK = "feedback"
+
 
 class AgentService:
-    def __init__(self, scenario_service: ScenarioService):
+    def __init__(
+        self, scenario_service: ScenarioService, agent_type: AgentType = AgentType.ROOT
+    ):
         self.app_name = os.getenv("APP_NAME", "Time to Teach")
         # self.session_service = InMemorySessionService()
         db_url = os.getenv("DB_PATH")
@@ -22,7 +31,26 @@ class AgentService:
         self.live_events = None
         self.live_request_queue = None
         self.scenario_service = scenario_service
-        self.root_agent = self.load_root_agent()
+
+        if agent_type == AgentType.ROOT:
+            self.root_agent = self.load_root_agent()
+        elif agent_type == AgentType.FEEDBACK:
+            self.root_agent = self.load_feedback_agent()
+
+    def get_feedback_agent_by_scenario_id(self, scenario_id: int) -> Agent:
+        session = next(get_session())
+        # TODO: replace below feedack_agent with ENV variable
+        statement = select(AgentPydantic).where(
+            AgentPydantic.scenario_id == scenario_id,
+            AgentPydantic.name == "feedback_agent",
+        )
+        agent_pydantic = session.exec(statement).one()
+        return Agent(
+            name=agent_pydantic.name,
+            description=agent_pydantic.description,
+            instruction=agent_pydantic.instruction,
+            model=agent_pydantic.model,
+        )
 
     def get_root_agent_by_scenario_id(
         self, scenario_id: int
@@ -79,6 +107,21 @@ class AgentService:
             instruction=root_agent.instruction,
             model=root_agent.model,
             sub_agents=sub_agents,
+        )
+
+    def load_feedback_agent(self) -> Agent:
+        print(
+            f"Loading feedback agent for scenario {self.scenario_service.scenario.id}"
+        )
+        feedback_agent = self.get_feedback_agent_by_scenario_id(
+            self.scenario_service.scenario.id
+        )
+        print(f"Feedback agent: {feedback_agent.name}")
+        return Agent(
+            name=feedback_agent.name,
+            description=feedback_agent.description,
+            instruction=feedback_agent.instruction,
+            model=feedback_agent.model,
         )
 
     def get_or_create_session(self, user_id: str, session_id: str) -> Session:
