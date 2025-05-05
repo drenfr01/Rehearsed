@@ -1,4 +1,5 @@
 from pydantic import BaseModel
+from typing import Optional
 
 
 class ConversationTurn(BaseModel):
@@ -10,6 +11,7 @@ class ConversationTurn(BaseModel):
     role: str
     author: str
     message_id: str
+    audio: Optional[str] = None
 
 
 class Conversation(BaseModel):
