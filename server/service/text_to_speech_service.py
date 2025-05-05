@@ -32,7 +32,7 @@ class TextToSpeechService:
             # Build the voice request
             voice = texttospeech.VoiceSelectionParams(
                 language_code="en-US",
-                name="en-US-Neural2-F",  # Using a neural voice for better quality
+                name="en-US-Chirp3-HD-Zephyr",  # Using a neural voice for better quality
             )
 
             # Select the type of audio file
