@@ -133,15 +133,26 @@ export default function AgentSimulation() {
       </div>
       <div className="hero-body">
         <div className="container">
-          <div className="columns is-gapless">
+          <div className="columns">
             {/* Left column - Chat */}
-            <div className="column is-8">
-              <div className="box" style={{ height: "100%" }}>
-                {message_content}
+            <div className="column is-8 pr-4 has-background-white">
+              <div
+                className="box"
+                style={{
+                  height: "100%",
+                  display: "flex",
+                  flexDirection: "column",
+                }}
+              >
+                <div style={{ flex: 1, overflowY: "auto" }}>
+                  {message_content}
+                </div>
+                <hr className="my-4" />
+                <div>{content}</div>
               </div>
             </div>
             {/* Right column - Feedback */}
-            <div className="column is-4">
+            <div className="column is-4 pl-4">
               <div className="box" style={{ height: "100%" }}>
                 <h3 className="title is-5">Feedback</h3>
                 <div className="content">
@@ -157,7 +168,9 @@ export default function AgentSimulation() {
         <footer className="section is-small">
           <div className="container">
             <div className="columns">
-              <div className="column is-8">{content}</div>
+              <div className="column is-8">
+                {/* Empty column to align with the chat panel */}
+              </div>
               <div className="column is-4">
                 {/* Empty column to align with the feedback panel */}
               </div>
