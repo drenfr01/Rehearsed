@@ -132,10 +132,38 @@ export default function AgentSimulation() {
         </div>
       </div>
       <div className="hero-body">
-        <div className="container">{message_content}</div>
+        <div className="container">
+          <div className="columns is-gapless">
+            {/* Left column - Chat */}
+            <div className="column is-8">
+              <div className="box" style={{ height: "100%" }}>
+                {message_content}
+              </div>
+            </div>
+            {/* Right column - Feedback */}
+            <div className="column is-4">
+              <div className="box" style={{ height: "100%" }}>
+                <h3 className="title is-5">Feedback</h3>
+                <div className="content">
+                  {/* Feedback content will go here */}
+                  <p>No feedback yet</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
       <div className="hero-foot">
-        <footer className="section is-small">{content}</footer>
+        <footer className="section is-small">
+          <div className="container">
+            <div className="columns">
+              <div className="column is-8">{content}</div>
+              <div className="column is-4">
+                {/* Empty column to align with the feedback panel */}
+              </div>
+            </div>
+          </div>
+        </footer>
       </div>
     </section>
   );
