@@ -5,10 +5,8 @@ from server.dependencies.database import engine
 from server.models.agent_model import AgentPydantic, Scenario, SubAgentLink
 from server.models.user_model import UserInDB
 
-FLASH_MODEL = "gemini-2.5-pro-preview-03-25"
-# FLASH_MODEL = "gemini-2.5-flash-preview-04-17"
-# PRO_MODEL = "gemini-2.5-pro-preview-03-25"
 PRO_MODEL = "gemini-2.5-pro-preview-03-25"
+FLASH_MODEL = "gemini-2.5-flash-preview-04-17"
 
 
 def initialize_scenario_data() -> list[Scenario]:
@@ -98,6 +96,23 @@ def load_feedback_agent(
     )
 
 
+def load_inline_feedback_agent(
+    file_path: str = "server/orm/inline_feedback_agent.yaml",
+) -> AgentPydantic:
+    print(f"Loading inline feedback agent data from {file_path}")
+    with open(file_path, "r") as f:
+        inline_feedback_agent_yaml = safe_load(f)
+
+    return AgentPydantic(
+        id=6,
+        scenario_id=1,
+        name=inline_feedback_agent_yaml["name"],
+        instruction=inline_feedback_agent_yaml["instruction"],
+        description=inline_feedback_agent_yaml["description"],
+        model=FLASH_MODEL,
+    )
+
+
 # TODO: I think I can just parameterize this with the root agent name and
 # load it from the database
 def load_root_agent(file_path: str = "server/orm/root_agent.yaml") -> AgentPydantic:
@@ -111,7 +126,7 @@ def load_root_agent(file_path: str = "server/orm/root_agent.yaml") -> AgentPydan
         name=root_agent_yaml["name"],
         instruction=root_agent_yaml["instruction"],
         description=root_agent_yaml["description"],
-        model=PRO_MODEL,
+        model=FLASH_MODEL,
     )
 
 
@@ -131,6 +146,7 @@ def initialize_sample_agent_data():
         session.commit()
         session.add_all(load_student_agents())
         session.add(load_feedback_agent())
+        session.add(load_inline_feedback_agent())
         session.add(load_root_agent())
         session.commit()
         session.add_all(initialize_sub_agent_links())

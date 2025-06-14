@@ -1,6 +1,6 @@
 import os
 
-from google.adk.agents import Agent, LiveRequestQueue
+from google.adk.agents import Agent, LiveRequestQueue, ParallelAgent
 from google.adk.agents.run_config import RunConfig
 from google.adk.runners import Runner
 from google.adk.sessions import Session
@@ -14,14 +14,24 @@ from server.service.scenario_service import ScenarioService
 from enum import Enum
 
 
+# TODO: move these to enum class
 class AgentType(Enum):
     ROOT = "root"
     FEEDBACK = "feedback"
 
 
+class AgentNames(Enum):
+    ROOT = "root_agent"
+    FEEDBACK = "feedback_agent"
+    INLINE_FEEDBACK = "inline_feedback_agent"
+
+
 class AgentService:
     def __init__(
-        self, scenario_service: ScenarioService, agent_type: AgentType = AgentType.ROOT
+        self,
+        scenario_service: ScenarioService,
+        agent_type: AgentType = AgentType.ROOT,
+        setup_inline_feedback: bool = True,
     ):
         self.app_name = os.getenv("APP_NAME", "Time to Teach")
         # self.session_service = InMemorySessionService()
@@ -33,7 +43,7 @@ class AgentService:
         self.scenario_service = scenario_service
 
         if agent_type == AgentType.ROOT:
-            self.root_agent = self.load_root_agent()
+            self.root_agent = self.load_root_agent(setup_inline_feedback)
         elif agent_type == AgentType.FEEDBACK:
             self.root_agent = self.load_feedback_agent()
 
@@ -58,7 +68,7 @@ class AgentService:
         session = next(get_session())
         statement = select(AgentPydantic).where(
             AgentPydantic.scenario_id == scenario_id,
-            AgentPydantic.name == "root_agent",
+            AgentPydantic.name == AgentNames.ROOT.value,
         )
         agent_pydantic = session.exec(statement).one()
         return agent_pydantic, Agent(
@@ -68,10 +78,50 @@ class AgentService:
             model=agent_pydantic.model,
         )
 
-    def get_agents(self, agents: list[int]) -> list[Agent]:
+    def get_agent_by_name(self, name: AgentNames) -> Agent:
         session = next(get_session())
-        statement = select(AgentPydantic).where(AgentPydantic.id.in_(agents))
-        agents_pydantic = session.exec(statement).all()
+        statement = select(AgentPydantic).where(AgentPydantic.name == name.value)
+        agent_pydantic = session.exec(statement).one()
+        print(f"Agent: {agent_pydantic.name}")
+        return Agent(
+            name=agent_pydantic.name,
+            description=agent_pydantic.description,
+            instruction=agent_pydantic.instruction,
+            model=agent_pydantic.model,
+        )
+
+    def create_parallel_inline_feedback_agents(
+        self, agents_pydantic: list[AgentPydantic]
+    ) -> list[Agent]:
+        """Returns a list of agents that folow Review/Crique pattern utilizing ParallelAgents and
+        the inline feedback agent
+
+        Args:
+            agents_pydantic: list of AgentPydantic student agents
+        """
+        agents = []
+        for agent_pydantic in agents_pydantic:
+            # Note: have to create a new inline feedback agent for each student agent
+            inline_feedback_agent = self.get_agent_by_name(AgentNames.INLINE_FEEDBACK)
+            student_agent = Agent(
+                name=agent_pydantic.name,
+                description=agent_pydantic.description,
+                instruction=agent_pydantic.instruction,
+                model=agent_pydantic.model,
+            )
+            parallel_agent = ParallelAgent(
+                name=f"{student_agent.name}_inline_feedback",
+                sub_agents=[student_agent, inline_feedback_agent],
+            )
+            agents.append(parallel_agent)
+        return agents
+
+    def create_llm_agents(self, agents_pydantic: list[AgentPydantic]) -> list[Agent]:
+        """Setup a list of agents that are LLM agents
+
+        Args:
+            agents_pydantic: list of AgentPydantic student agents
+        """
         agents = []
         for agent_pydantic in agents_pydantic:
             agents.append(
@@ -84,6 +134,18 @@ class AgentService:
             )
         return agents
 
+    def get_agents(
+        self, agents: list[int], setup_inline_feedback: bool = True
+    ) -> list[Agent]:
+        session = next(get_session())
+        statement = select(AgentPydantic).where(AgentPydantic.id.in_(agents))
+        agents_pydantic = session.exec(statement).all()
+        if setup_inline_feedback:
+            agents = self.create_parallel_inline_feedback_agents(agents_pydantic)
+        else:
+            agents = self.create_llm_agents(agents_pydantic)
+        return agents
+
     def get_sub_agent_ids(self, root_agent_id: int) -> list[int]:
         session = next(get_session())
         statement = select(SubAgentLink).where(
@@ -92,14 +154,14 @@ class AgentService:
         sub_agent_links = session.exec(statement).all()
         return [link.sub_agent_id for link in sub_agent_links]
 
-    def load_root_agent(self) -> Agent:
+    def load_root_agent(self, setup_inline_feedback: bool = True) -> Agent:
         print(f"Loading root agent for scenario {self.scenario_service.scenario.id}")
         agent_pydantic, root_agent = self.get_root_agent_by_scenario_id(
             self.scenario_service.scenario.id
         )
         print(f"Root agent: {root_agent.name}")
         sub_agent_ids = self.get_sub_agent_ids(agent_pydantic.id)
-        sub_agents = self.get_agents(sub_agent_ids)
+        sub_agents = self.get_agents(sub_agent_ids, setup_inline_feedback)
         print(f"Sub agents: {[agent.name for agent in sub_agents]}")
         return Agent(
             name=root_agent.name,

@@ -21,7 +21,7 @@ class AgentServiceRequest(AgentService):
         user_id: str,
         session_id: str,
         message: str,
-    ):
+    ) -> tuple[str, str]:
         self.initialize_agent(user_id, session_id)
         return await call_agent_async(message, runner, user_id, session_id)
 
@@ -59,10 +59,8 @@ class AgentServiceRequest(AgentService):
                     message_id=event.id,
                     audio=audio_content,
                 )
-                print(
-                    f"Conversation turn created with audio: {conversation_turn.audio is not None}"
-                )
                 conversation.turns.append(conversation_turn)
 
-        print(f"Conversation: {conversation}")
+        for turn in conversation.turns:
+            print(f"Conversation turn: {turn.content}")
         return conversation
