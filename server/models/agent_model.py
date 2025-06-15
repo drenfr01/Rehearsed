@@ -1,5 +1,17 @@
 from pydantic import BaseModel
-from sqlmodel import Field, SQLModel
+from sqlmodel import Field, SQLModel, String
+from typing import Literal
+from enum import Enum
+
+
+class AgentType(str, Enum):
+    LLM = "llm"
+    SEQUENTIAL = "sequential"
+
+
+class MediaType(str, Enum):
+    NONE = "none"
+    TEXT = "text"
 
 
 class Scenario(SQLModel, table=True):
@@ -20,9 +32,18 @@ class AgentPydantic(SQLModel, table=True):
     id: int = Field(default=None, primary_key=True, unique=True)
     scenario_id: int = Field(default=None, foreign_key="scenario.id")
     name: str = Field(default=None)
+    agent_type: Literal[AgentType.LLM, AgentType.SEQUENTIAL] = Field(
+        default=AgentType.LLM, sa_type=String
+    )
+    media_type: Literal[MediaType.NONE, MediaType.TEXT] = Field(
+        default=MediaType.NONE, sa_type=String
+    )
     instruction: str = Field(default=None)
     description: str = Field(default=None)
     model: str = Field(default=None)
+    tools: str = Field(default="")
+    modules: str = Field(default="")
+    sub_agent_ids: str = Field(default="")
 
 
 class SubAgentLink(SQLModel, table=True):

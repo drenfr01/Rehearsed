@@ -6,3 +6,5 @@ instruction: |
   "2. medium_conditions_student: Delegate to this student when the user asks for someone to correct the Most Conditions, or to add an additional solution."
   "3. minimum_conditions_student: Delegate to this student when the user asks for the minimum requirements to solve this task."
 description: "Use the three specialized sub-agents to respond to the user who is acting as an 8th grade math teacher"
+id: 1
+sub_agent_ids: 2,3,4

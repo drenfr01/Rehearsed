@@ -1,5 +1,6 @@
 import os
-
+import importlib
+from google.adk.tools import FunctionTool
 from google.adk.agents import Agent, LiveRequestQueue
 from google.adk.agents.run_config import RunConfig
 from google.adk.runners import Runner
@@ -19,6 +20,9 @@ class AgentType(Enum):
     FEEDBACK = "feedback"
 
 
+PATH_TO_TOOLS = "server.tools"
+
+
 class AgentService:
     def __init__(
         self, scenario_service: ScenarioService, agent_type: AgentType = AgentType.ROOT
@@ -33,11 +37,13 @@ class AgentService:
         self.scenario_service = scenario_service
 
         if agent_type == AgentType.ROOT:
-            self.root_agent = self.load_root_agent()
+            self.agent_pydantic, self.root_agent = self.load_root_agent()
         elif agent_type == AgentType.FEEDBACK:
-            self.root_agent = self.load_feedback_agent()
+            self.agent_pydantic, self.feedback_agent = self.load_feedback_agent()
 
-    def get_feedback_agent_by_scenario_id(self, scenario_id: int) -> Agent:
+    def get_feedback_agent_by_scenario_id(
+        self, scenario_id: int
+    ) -> tuple[AgentPydantic, Agent]:
         session = next(get_session())
         # TODO: replace below feedack_agent with ENV variable
         statement = select(AgentPydantic).where(
@@ -45,7 +51,7 @@ class AgentService:
             AgentPydantic.name == "feedback_agent",
         )
         agent_pydantic = session.exec(statement).one()
-        return Agent(
+        return agent_pydantic, Agent(
             name=agent_pydantic.name,
             description=agent_pydantic.description,
             instruction=agent_pydantic.instruction,
@@ -68,18 +74,58 @@ class AgentService:
             model=agent_pydantic.model,
         )
 
+    def load_tools(self, agent_pydantic: AgentPydantic) -> list[FunctionTool] | list:
+        tools = []
+        active_tool_names = [
+            t.strip() for t in agent_pydantic.tools.split(",") if t.strip()
+        ]
+        active_module_names = [
+            m.strip() for m in agent_pydantic.modules.split(",") if m.strip()
+        ]
+        if active_tool_names and active_module_names:
+            for tool, module in zip(active_tool_names, active_module_names):
+                module_path = importlib.import_module(f"{PATH_TO_TOOLS}.{module}")
+                function = getattr(module_path, tool)
+                tools.append(FunctionTool(func=function))
+
+        return tools
+
+    def get_agent(self, agent_name: str) -> Agent:
+        """
+        Get an agent by name
+
+        Args:
+            agent_name: The name of the agent to get
+
+        Returns:
+            The agent pydantic object and Agent object
+        """
+        session = next(get_session())
+        statement = select(AgentPydantic).where(AgentPydantic.name == agent_name)
+        agent_pydantic = session.exec(statement).one()
+        return Agent(
+            name=agent_pydantic.name,
+            description=agent_pydantic.description,
+            instruction=agent_pydantic.instruction,
+            model=agent_pydantic.model,
+        )
+
     def get_agents(self, agents: list[int]) -> list[Agent]:
         session = next(get_session())
         statement = select(AgentPydantic).where(AgentPydantic.id.in_(agents))
         agents_pydantic = session.exec(statement).all()
         agents = []
         for agent_pydantic in agents_pydantic:
+            if agent_pydantic.tools:
+                tools = self.load_tools(agent_pydantic)
+                print(f"Tools: {tools}")
             agents.append(
                 Agent(
                     name=agent_pydantic.name,
                     description=agent_pydantic.description,
                     instruction=agent_pydantic.instruction,
                     model=agent_pydantic.model,
+                    tools=tools,
                 )
             )
         return agents
@@ -92,7 +138,13 @@ class AgentService:
         sub_agent_links = session.exec(statement).all()
         return [link.sub_agent_id for link in sub_agent_links]
 
-    def load_root_agent(self) -> Agent:
+    def load_root_agent(self) -> tuple[AgentPydantic, Agent]:
+        """
+        Loads the root agent for the scenario
+
+        Returns:
+            The agent pydantic object and Agent object
+        """
         print(f"Loading root agent for scenario {self.scenario_service.scenario.id}")
         agent_pydantic, root_agent = self.get_root_agent_by_scenario_id(
             self.scenario_service.scenario.id
@@ -101,7 +153,7 @@ class AgentService:
         sub_agent_ids = self.get_sub_agent_ids(agent_pydantic.id)
         sub_agents = self.get_agents(sub_agent_ids)
         print(f"Sub agents: {[agent.name for agent in sub_agents]}")
-        return Agent(
+        return agent_pydantic, Agent(
             name=root_agent.name,
             description=root_agent.description,
             instruction=root_agent.instruction,
@@ -109,15 +161,21 @@ class AgentService:
             sub_agents=sub_agents,
         )
 
-    def load_feedback_agent(self) -> Agent:
+    def load_feedback_agent(self) -> tuple[AgentPydantic, Agent]:
+        """
+        Loads the feedback agent for the scenario
+
+        Returns:
+            The agent pydantic object and Agent object
+        """
         print(
             f"Loading feedback agent for scenario {self.scenario_service.scenario.id}"
         )
-        feedback_agent = self.get_feedback_agent_by_scenario_id(
+        agent_pydantic, feedback_agent = self.get_feedback_agent_by_scenario_id(
             self.scenario_service.scenario.id
         )
         print(f"Feedback agent: {feedback_agent.name}")
-        return Agent(
+        return agent_pydantic, Agent(
             name=feedback_agent.name,
             description=feedback_agent.description,
             instruction=feedback_agent.instruction,
