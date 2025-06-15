@@ -94,6 +94,7 @@ async def request_agent_response(
     )
 
     # Return both the text response and audio content
+    print("Sending back Agent Response")
     return JSONResponse(
         content={
             "text": response.agent_response_text,
@@ -109,6 +110,7 @@ async def get_conversation_content(
     session_id: str,
     agent_service: AgentServiceRequest = Depends(get_agent_service_request),
 ) -> Conversation:
+    print(f"Getting conversation content for user {user_id} and session {session_id}")
     return await agent_service.get_session_content(user_id, session_id)
 
 

@@ -33,8 +33,5 @@ class TextService:
         response = self.client.models.generate_content(
             model=model,
             contents=prompt,
-            config=types.GenerationConfig(
-                system_instruction="Return all responses in Markdown format"
-            ),
         )
         return response.text

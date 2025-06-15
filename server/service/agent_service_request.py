@@ -30,7 +30,6 @@ class AgentServiceRequest(AgentService):
         session_id: str,
         message: str,
     ) -> AgentResponse:
-        await self.initialize_agent(user_id, session_id)
         return await self.call_agent_async(message, runner, user_id, session_id)
 
     async def get_session_content(
@@ -39,6 +38,7 @@ class AgentServiceRequest(AgentService):
         session_id: str,
     ) -> Conversation:
         """Gets the session for a given user and session id. Session is always initialized"""
+        print(f"Getting session content for user {user_id} and session {session_id}")
         saved_session = await self.get_or_create_session(user_id, session_id)
         conversation = Conversation(turns=[])
 
