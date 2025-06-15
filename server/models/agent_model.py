@@ -6,7 +6,7 @@ from enum import Enum
 
 class AgentResponse(BaseModel):
     agent_response_text: str
-    markdown_text: str
+    markdown_text: str | None = None
 
 
 class ADKType(str, Enum):

@@ -29,8 +29,8 @@ class AgentServiceRequest(AgentService):
         user_id: str,
         session_id: str,
         message: str,
-    ):
-        self.initialize_agent(user_id, session_id)
+    ) -> AgentResponse:
+        await self.initialize_agent(user_id, session_id)
         return await self.call_agent_async(message, runner, user_id, session_id)
 
     async def get_session_content(
@@ -79,16 +79,17 @@ class AgentServiceRequest(AgentService):
         self, runner: Runner, user_id: str, session_id: str, filename: str
     ) -> str:
         """Handles the media types for the agent"""
-        return await runner.artifacts.load_artifact(
+        text_part = await runner.artifact_service.load_artifact(
             app_name=self.app_name,
             user_id=user_id,
             session_id=session_id,
             filename=filename,
         )
+        return text_part.text
 
     async def call_agent_async(
         self, query: str, runner: Runner, user_id: str, session_id: str
-    ):
+    ) -> AgentResponse:
         text_str = None
         """Sends a query to the agent and prints the final response."""
         print(f"\n>>> User Query: {query}")
@@ -106,15 +107,15 @@ class AgentServiceRequest(AgentService):
             user_id=user_id, session_id=session_id, new_message=content
         ):
             # You can uncomment the line below to see *all* events during execution
-            # print(f"  [Event] Author: {event.author}, Type: {type(event).__name__}, Final: {event.is_final_response()}, Content: {event.content}")
+            print(
+                f"  [Event] Author: {event.author}, Type: {type(event).__name__}, Final: {event.is_final_response()}, Content: {event.content}"
+            )
 
             # Key Concept: is_final_response() marks the concluding message for the turn.
             if event.is_final_response():
                 agent_pydantic, _ = self.get_agent(event.author)
-                if self.agent_pydantic.media_type == "text":
-                    text_str = await self.handle_media_types(
-                        runner, user_id, session_id, "text.md"
-                    ).text
+                if agent_pydantic.name == "feedback_agent":
+                    text_str = event.content.parts[0].text
 
                 if event.content and event.content.parts:
                     # Assuming text response in the first part
@@ -126,10 +127,11 @@ class AgentServiceRequest(AgentService):
                 # Add more checks here if needed (e.g., specific error codes)
 
                 # Only break if it's an LLM agent, if it's a parallel or sequential agent we will want to aggregate responses
-                if self.agent_pydantic.agent_type == ADKType.LLM.value:
-                    break  # Stop processing events once the final response is found
+                # if self.agent_pydantic.adk_type == ADKType.LLM.value:
+                #     break  # Stop processing events once the final response is found
 
         print(f"<<< Agent Response: {final_response_text}")
+
         return AgentResponse(
             agent_response_text=final_response_text,
             markdown_text=text_str,

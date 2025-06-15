@@ -11,10 +11,10 @@ from server.models.agent_model import (
 )
 from server.models.user_model import UserInDB
 
-FLASH_MODEL = "gemini-2.5-pro-preview-03-25"
 # FLASH_MODEL = "gemini-2.5-flash-preview-04-17"
 # PRO_MODEL = "gemini-2.5-pro-preview-03-25"
 PRO_MODEL = "gemini-2.5-pro-preview-03-25"
+FLASH_MODEL = "gemini-2.5-flash-preview-05-20"
 
 
 def initialize_scenario_data(session: Session) -> None:
@@ -103,6 +103,7 @@ def load_agents(
                 media_type=agent_data.get("media_type", MediaType.NONE),
                 tools=agent_data.get("tools", ""),
                 modules=agent_data.get("modules", ""),
+                sub_agent_ids=agent_data.get("sub_agent_ids", ""),
             )
         )
         if agent_data.get("sub_agent_ids"):

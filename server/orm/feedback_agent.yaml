@@ -5,3 +5,4 @@ media_type: "text"
 tools: "generate_text"
 modules: "text_tools"
 id: 8
+adk_type: "llm"

@@ -14,7 +14,7 @@ class TextService:
             self.project_id = project_id or os.environ.get("GOOGLE_PROJECT_ID")
             self.location = location or os.environ.get("GOOGLE_LOCATION")
             self.client = genai.Client(
-                vertexai=True, project_id=self.project_id, location=self.location
+                vertexai=True, project=self.project_id, location=self.location
             )
         except Exception as e:
             error_message = f"Error initializing TextService: {e}"
@@ -30,9 +30,9 @@ class TextService:
             prompt: The prompt to generate text from
             model: The model to use for the generation
         """
-        response = self.client.generate_content(
+        response = self.client.models.generate_content(
             model=model,
-            prompt=prompt,
+            contents=prompt,
             config=types.GenerationConfig(
                 system_instruction="Return all responses in Markdown format"
             ),

@@ -1,7 +1,7 @@
 import os
 import importlib
 from google.adk.tools import FunctionTool
-from google.adk.agents import Agent, LiveRequestQueue
+from google.adk.agents import Agent, LiveRequestQueue, SequentialAgent
 from google.adk.agents.run_config import RunConfig
 from google.adk.runners import Runner
 from google.adk.sessions import Session
@@ -9,8 +9,10 @@ from google.adk.sessions.database_session_service import DatabaseSessionService
 from sqlmodel import select
 
 from server.dependencies.database import engine, get_session
-from server.models.agent_model import AgentPydantic, SubAgentLink
+from server.models.agent_model import AgentPydantic, SubAgentLink, ADKType
 from server.service.scenario_service import ScenarioService
+
+from google.adk.artifacts import InMemoryArtifactService
 
 from enum import Enum
 
@@ -111,21 +113,27 @@ class AgentService:
             model=agent_pydantic.model,
         )
 
-    def get_agents(self, agents: list[int]) -> list[Agent]:
+    def get_agents(self, agent_ids: list[int]) -> list[Agent]:
         session = next(get_session())
-        statement = select(AgentPydantic).where(AgentPydantic.id.in_(agents))
+        statement = select(AgentPydantic).where(AgentPydantic.id.in_(agent_ids))
         agents_pydantic = session.exec(statement).all()
         agents = []
         for agent_pydantic in agents_pydantic:
+            tools = []
             if agent_pydantic.tools:
                 tools = self.load_tools(agent_pydantic)
                 print(f"Tools: {tools}")
 
-            if agent_pydantic.sub_agent_ids:
+            sub_agents = []
+            if self.get_sub_agent_ids(agent_pydantic.id):
                 sub_agent_ids = [
                     int(id) for id in agent_pydantic.sub_agent_ids.split(",")
                 ]
                 sub_agents = self.get_agents(sub_agent_ids)
+                print(
+                    f"Found additional subagents: {[agent.name for agent in sub_agents]}"
+                )
+            if agent_pydantic.adk_type == ADKType.LLM.value:
                 agents.append(
                     Agent(
                         name=agent_pydantic.name,
@@ -136,6 +144,16 @@ class AgentService:
                         tools=tools,
                     )
                 )
+            elif agent_pydantic.adk_type == ADKType.SEQUENTIAL.value:
+                agents.append(
+                    SequentialAgent(
+                        name=agent_pydantic.name,
+                        description=agent_pydantic.description,
+                        sub_agents=sub_agents,
+                    )
+                )
+            else:
+                raise ValueError(f"Invalid ADK type: {agent_pydantic.adk_type}")
         return agents
 
     def get_sub_agent_ids(self, root_agent_id: int) -> list[int]:
@@ -154,18 +172,22 @@ class AgentService:
             The agent pydantic object and Agent object
         """
         print(f"Loading root agent for scenario {self.scenario_service.scenario.id}")
-        agent_pydantic, root_agent = self.get_root_agent_by_scenario_id(
-            self.scenario_service.scenario.id
+        session = next(get_session())
+        statement = select(AgentPydantic).where(
+            AgentPydantic.scenario_id == self.scenario_service.scenario.id,
+            AgentPydantic.name == "root_agent",
         )
-        print(f"Root agent: {root_agent.name}")
+        agent_pydantic = session.exec(statement).one()
+        print(f"Root agent: {agent_pydantic.name}")
         sub_agent_ids = self.get_sub_agent_ids(agent_pydantic.id)
+        print(f"Sub agents Ids: {sub_agent_ids}")
         sub_agents = self.get_agents(sub_agent_ids)
         print(f"Sub agents: {[agent.name for agent in sub_agents]}")
         return agent_pydantic, Agent(
-            name=root_agent.name,
-            description=root_agent.description,
-            instruction=root_agent.instruction,
-            model=root_agent.model,
+            name=agent_pydantic.name,
+            description=agent_pydantic.description,
+            instruction=agent_pydantic.instruction,
+            model=agent_pydantic.model,
             sub_agents=sub_agents,
         )
 
@@ -190,20 +212,20 @@ class AgentService:
             model=feedback_agent.model,
         )
 
-    def get_or_create_session(self, user_id: str, session_id: str) -> Session:
-        session = self.session_service.get_session(
+    async def get_or_create_session(self, user_id: str, session_id: str) -> Session:
+        session = await self.session_service.get_session(
             app_name=self.app_name, user_id=user_id, session_id=session_id
         )
         if session is None:
             print(f"Creating session for user {user_id} and session {session_id}")
-            session = self.session_service.create_session(
+            session = await self.session_service.create_session(
                 app_name=self.app_name,
                 user_id=user_id,
                 session_id=session_id,
             )
         return session
 
-    def initialize_agent(
+    async def initialize_agent(
         self,
         user_id: str,
         session_id: str,
@@ -211,13 +233,14 @@ class AgentService:
         """Starts an agent session"""
 
         # TODO: can pass in initial state here
-        session = self.get_or_create_session(user_id, session_id)
+        session = await self.get_or_create_session(user_id, session_id)
 
         # Create a Runner
         self.runner = Runner(
             app_name=self.app_name,
             agent=self.root_agent,
             session_service=self.session_service,
+            artifact_service=InMemoryArtifactService(),
         )
 
         # Set response modality = TEXT

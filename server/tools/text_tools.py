@@ -3,12 +3,12 @@ from google.genai import types
 from google.adk.tools import ToolContext
 
 
-async def generate_text(
-    prompt: str, tool_context: "ToolContext", file_name: str = "text.md"
-) -> dict:
+async def generate_text(prompt: str, tool_context: "ToolContext") -> dict:
     """
     Generate text using the TextService.
     """
+    # Note: google adk does not like default parameter
+    file_name = "text.md"
 
     text_service = TextService()
     text_response = text_service.generate_markdown_text(prompt)

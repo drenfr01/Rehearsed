@@ -68,7 +68,7 @@ async def request_agent_response(
     agent_service: AgentServiceRequest = Depends(get_agent_service_request),
 ) -> JSONResponse:
     # Initialize the agent service
-    agent_service.initialize_agent(user_id, session_id)
+    await agent_service.initialize_agent(user_id, session_id)
 
     # If there's an audio file, process it
     if audio:
@@ -89,12 +89,14 @@ async def request_agent_response(
     )
 
     # Convert the response to speech
-    audio_content = await text_to_speech_service.text_to_speech(response)
+    audio_content = await text_to_speech_service.text_to_speech(
+        response.agent_response_text
+    )
 
     # Return both the text response and audio content
     return JSONResponse(
         content={
-            "text": response,
+            "text": response.agent_response_text,
             "audio": audio_content.decode("latin1") if audio_content else None,
             "markdown_text": response.markdown_text,
         }
