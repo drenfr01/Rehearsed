@@ -7,6 +7,7 @@ from fastapi.responses import JSONResponse
 from server.agents.agent_streaming import streaming_root_agent
 from server.agents.feedback_agent import feedback_agent
 from server.models.agent_interface import Conversation
+from server.models.agent_model import AgentResponse
 from server.service.agent_service_request import AgentServiceRequest
 from server.service.agent_service_streaming import AgentServiceStreaming
 from server.service.speech_to_text_service import SpeechToTextService
@@ -65,7 +66,7 @@ async def request_agent_response(
     session_id: str = Form(...),
     audio: Optional[UploadFile] = File(None),
     agent_service: AgentServiceRequest = Depends(get_agent_service_request),
-):
+) -> JSONResponse:
     # Initialize the agent service
     agent_service.initialize_agent(user_id, session_id)
 
@@ -95,6 +96,7 @@ async def request_agent_response(
         content={
             "text": response,
             "audio": audio_content.decode("latin1") if audio_content else None,
+            "markdown_text": response.markdown_text,
         }
     )
 

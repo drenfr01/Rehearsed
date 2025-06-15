@@ -2,6 +2,7 @@ import base64
 from google.adk.runners import Runner
 
 from server.models.agent_interface import Conversation, ConversationTurn
+from server.models.agent_model import AgentResponse, ADKType
 from server.service.agent_service import AgentService, AgentType
 from server.service.scenario_service import ScenarioService
 from server.service.text_to_speech_service import TextToSpeechService
@@ -74,9 +75,21 @@ class AgentServiceRequest(AgentService):
         print(f"Conversation: {conversation}")
         return conversation
 
+    async def handle_media_types(
+        self, runner: Runner, user_id: str, session_id: str, filename: str
+    ) -> str:
+        """Handles the media types for the agent"""
+        return await runner.artifacts.load_artifact(
+            app_name=self.app_name,
+            user_id=user_id,
+            session_id=session_id,
+            filename=filename,
+        )
+
     async def call_agent_async(
         self, query: str, runner: Runner, user_id: str, session_id: str
     ):
+        text_str = None
         """Sends a query to the agent and prints the final response."""
         print(f"\n>>> User Query: {query}")
 
@@ -98,6 +111,11 @@ class AgentServiceRequest(AgentService):
             # Key Concept: is_final_response() marks the concluding message for the turn.
             if event.is_final_response():
                 agent_pydantic, _ = self.get_agent(event.author)
+                if self.agent_pydantic.media_type == "text":
+                    text_str = await self.handle_media_types(
+                        runner, user_id, session_id, "text.md"
+                    ).text
+
                 if event.content and event.content.parts:
                     # Assuming text response in the first part
                     final_response_text = event.content.parts[0].text
@@ -108,8 +126,11 @@ class AgentServiceRequest(AgentService):
                 # Add more checks here if needed (e.g., specific error codes)
 
                 # Only break if it's an LLM agent, if it's a parallel or sequential agent we will want to aggregate responses
-                if self.agent_pydantic.agent_type == AgentType.LLM.value:
+                if self.agent_pydantic.agent_type == ADKType.LLM.value:
                     break  # Stop processing events once the final response is found
 
         print(f"<<< Agent Response: {final_response_text}")
-        return final_response_text
+        return AgentResponse(
+            agent_response_text=final_response_text,
+            markdown_text=text_str,
+        )

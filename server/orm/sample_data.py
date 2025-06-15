@@ -4,7 +4,7 @@ from yaml import safe_load
 from server.dependencies.database import engine
 from server.models.agent_model import (
     AgentPydantic,
-    AgentType,
+    ADKType,
     MediaType,
     Scenario,
     SubAgentLink,
@@ -99,7 +99,7 @@ def load_agents(
                 instruction=agent_data["instruction"],
                 description=agent_data["description"],
                 model=model,
-                agent_type=agent_data.get("agent_type", AgentType.LLM),
+                adk_type=agent_data.get("adk_type", ADKType.LLM),
                 media_type=agent_data.get("media_type", MediaType.NONE),
                 tools=agent_data.get("tools", ""),
                 modules=agent_data.get("modules", ""),

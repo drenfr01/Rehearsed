@@ -90,7 +90,8 @@ class AgentService:
 
         return tools
 
-    def get_agent(self, agent_name: str) -> Agent:
+    # TODO: make a pydnantic modle to hold agent pydantic and agent
+    def get_agent(self, agent_name: str) -> tuple[AgentPydantic, Agent]:
         """
         Get an agent by name
 
@@ -103,7 +104,7 @@ class AgentService:
         session = next(get_session())
         statement = select(AgentPydantic).where(AgentPydantic.name == agent_name)
         agent_pydantic = session.exec(statement).one()
-        return Agent(
+        return agent_pydantic, Agent(
             name=agent_pydantic.name,
             description=agent_pydantic.description,
             instruction=agent_pydantic.instruction,
@@ -119,15 +120,22 @@ class AgentService:
             if agent_pydantic.tools:
                 tools = self.load_tools(agent_pydantic)
                 print(f"Tools: {tools}")
-            agents.append(
-                Agent(
-                    name=agent_pydantic.name,
-                    description=agent_pydantic.description,
-                    instruction=agent_pydantic.instruction,
-                    model=agent_pydantic.model,
-                    tools=tools,
+
+            if agent_pydantic.sub_agent_ids:
+                sub_agent_ids = [
+                    int(id) for id in agent_pydantic.sub_agent_ids.split(",")
+                ]
+                sub_agents = self.get_agents(sub_agent_ids)
+                agents.append(
+                    Agent(
+                        name=agent_pydantic.name,
+                        description=agent_pydantic.description,
+                        instruction=agent_pydantic.instruction,
+                        model=agent_pydantic.model,
+                        sub_agents=sub_agents,
+                        tools=tools,
+                    )
                 )
-            )
         return agents
 
     def get_sub_agent_ids(self, root_agent_id: int) -> list[int]:

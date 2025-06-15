@@ -4,7 +4,12 @@ from typing import Literal
 from enum import Enum
 
 
-class AgentType(str, Enum):
+class AgentResponse(BaseModel):
+    agent_response_text: str
+    markdown_text: str
+
+
+class ADKType(str, Enum):
     LLM = "llm"
     SEQUENTIAL = "sequential"
 
@@ -32,8 +37,8 @@ class AgentPydantic(SQLModel, table=True):
     id: int = Field(default=None, primary_key=True, unique=True)
     scenario_id: int = Field(default=None, foreign_key="scenario.id")
     name: str = Field(default=None)
-    agent_type: Literal[AgentType.LLM, AgentType.SEQUENTIAL] = Field(
-        default=AgentType.LLM, sa_type=String
+    adk_type: Literal[ADKType.LLM, ADKType.SEQUENTIAL] = Field(
+        default=ADKType.LLM, sa_type=String
     )
     media_type: Literal[MediaType.NONE, MediaType.TEXT] = Field(
         default=MediaType.NONE, sa_type=String
