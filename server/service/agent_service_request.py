@@ -39,7 +39,7 @@ class AgentServiceRequest(AgentService):
         session_id: str,
     ) -> Conversation:
         """Gets the session for a given user and session id. Session is always initialized"""
-        saved_session = self.get_or_create_session(user_id, session_id)
+        saved_session = await self.get_or_create_session(user_id, session_id)
         conversation = Conversation(turns=[])
 
         for event in saved_session.events:

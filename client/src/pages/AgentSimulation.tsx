@@ -1,18 +1,19 @@
 import ChatMessage from "../components/ChatMessage";
 import ChatOverview from "../components/ChatOverview";
 import ChatInput from "../components/ChatInput";
-import { AgentResponse } from "../interfaces/AgentInterface";
 import {
   usePostRequestMutation,
   useFetchConversationQuery,
   useProvideAgentFeedbackMutation,
 } from "../store";
 import { useEffect, useState } from "react";
+import ReactMarkdown from "react-markdown";
 
 export default function AgentSimulation() {
   // TODO: these will be set by user login
   const userId = "18";
   const [sessionId, setSessionId] = useState<string>("");
+  const [latestFeedback, setLatestFeedback] = useState<string>("");
 
   const generateNewSessionId = () => {
     const newSessionId = crypto.randomUUID();
@@ -38,6 +39,13 @@ export default function AgentSimulation() {
   const [provideAgentFeedback] = useProvideAgentFeedbackMutation({
     fixedCacheKey: "provideAgentFeedback",
   });
+
+  // Update feedback when we get a new response
+  useEffect(() => {
+    if (results.data?.markdown_text) {
+      setLatestFeedback(results.data.markdown_text);
+    }
+  }, [results.data]);
 
   let message_content;
   if (isFetching) {
@@ -156,8 +164,11 @@ export default function AgentSimulation() {
               <div className="box" style={{ height: "100%" }}>
                 <h3 className="title is-5">Feedback</h3>
                 <div className="content">
-                  {/* Feedback content will go here */}
-                  <p>No feedback yet</p>
+                  {latestFeedback ? (
+                    <ReactMarkdown>{latestFeedback}</ReactMarkdown>
+                  ) : (
+                    <p>No feedback yet</p>
+                  )}
                 </div>
               </div>
             </div>
