@@ -1,0 +1,13 @@
+.hide-scrollbar {
+  overflow: auto;
+  scrollbar-width: none;  /* Firefox */
+  -ms-overflow-style: none;  /* IE and Edge */
+}
+
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;  /* Chrome, Safari and Opera */
+}
+
+.smaller-text {
+  font-size: 0.9rem;
+} 
