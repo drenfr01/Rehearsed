@@ -23,7 +23,7 @@ class AgentRequestService:
         session_id: str,
         message: str,
     ) -> AgentResponse:
-        self.initialize_runner(user_id, session_id)
+        await self.initialize_runner(user_id, session_id)
         return await self.call_agent_async(message, runner, user_id, session_id)
 
     async def initialize_runner(
@@ -39,7 +39,7 @@ class AgentRequestService:
         self.runner = Runner(
             app_name=self.agent_service.app_name,
             agent=self.agent_service.root_agent,
-            session_service=self.session_service,
+            session_service=self.session_service.get_session_service(),
             artifact_service=InMemoryArtifactService(),
         )
 
