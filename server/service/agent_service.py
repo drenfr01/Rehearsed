@@ -2,7 +2,7 @@ import importlib
 import os
 from enum import Enum
 
-from google.adk.agents import Agent, SequentialAgent
+from google.adk.agents import Agent, ParallelAgent, SequentialAgent
 from google.adk.tools import FunctionTool
 from sqlmodel import select
 
@@ -139,6 +139,14 @@ class AgentService:
             elif agent_pydantic.adk_type == ADKType.SEQUENTIAL.value:
                 agents.append(
                     SequentialAgent(
+                        name=agent_pydantic.name,
+                        description=agent_pydantic.description,
+                        sub_agents=sub_agents,
+                    )
+                )
+            elif agent_pydantic.adk_type == ADKType.PARALLEL.value:
+                agents.append(
+                    ParallelAgent(
                         name=agent_pydantic.name,
                         description=agent_pydantic.description,
                         sub_agents=sub_agents,

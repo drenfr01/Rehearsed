@@ -1,21 +1,21 @@
 - name: "most_conditions_student_wrapper"
   instruction: "This is a wrapper for the most_conditions_student agent. It is used to wrap the most_conditions_student agent in a function that can be used by the agent framework."
   description: "Have this student speak when the user asks the first question or any specific follow ups to their own idea."
-  adk_type: "sequential"
+  adk_type: "parallel"
   id: 2
   sub_agent_ids: 5,8
 
 - name: "medium_conditions_student_wrapper"
   instruction: "This is a wrapper for the medium_conditions_student agent. It is used to wrap the medium_conditions_student agent in a function that can be used by the agent framework."
   description: "Have this student speak when the user asks the first question or any specific follow ups to their own idea."
-  adk_type: "sequential"
+  adk_type: "parallel"
   id: 3
   sub_agent_ids: 6,8
-
+  
 - name: "minimum_conditions_student_wrapper"
   instruction: "This is a wrapper for the minimum_conditions_student agent. It is used to wrap the minimum_conditions_student agent in a function that can be used by the agent framework."
   description: "Have this student speak when the user asks the first question or any specific follow ups to their own idea."
-  adk_type: "sequential"
+  adk_type: "parallel"
   id: 4
   sub_agent_ids: 7,8
 

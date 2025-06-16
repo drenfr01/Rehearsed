@@ -13,6 +13,7 @@ class AgentResponse(BaseModel):
 class ADKType(str, Enum):
     LLM = "llm"
     SEQUENTIAL = "sequential"
+    PARALLEL = "parallel"
 
 
 class MediaType(str, Enum):
