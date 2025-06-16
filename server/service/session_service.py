@@ -49,7 +49,13 @@ class SessionService:
         conversation = Conversation(turns=[])
 
         for event in saved_session.events:
-            if event.content and event.content.parts and event.content.parts[0].text:
+            # TODO: make an enum with agent names here. This is a hack
+            if (
+                event.content
+                and event.content.parts
+                and event.content.parts[0].text
+                and event.author != "feedback_agent"
+            ):
                 # Generate audio for system responses
                 audio_content = None
                 # TODO: make an enum with "user" and "model" here
