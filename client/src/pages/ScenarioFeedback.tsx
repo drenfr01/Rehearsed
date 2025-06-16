@@ -49,7 +49,7 @@ export default function ScenarioFeedback() {
   } else {
     content = (
       <div className="content">
-        <Markdown>{results.data}</Markdown>
+        <Markdown>{results.data.markdown_text}</Markdown>
       </div>
     );
   }
