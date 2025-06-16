@@ -1,5 +1,4 @@
 import ChatMessage from "../components/ChatMessage";
-import ChatOverview from "../components/ChatOverview";
 import ChatInput from "../components/ChatInput";
 import {
   usePostRequestMutation,
@@ -130,7 +129,6 @@ export default function AgentSimulation() {
     <section className="hero is-fullheight">
       <div className="hero-head has-text-centered">
         <div className="container">
-          <ChatOverview />
           <button
             className="button is-primary is-small mt-2"
             onClick={generateNewSessionId}
@@ -152,7 +150,21 @@ export default function AgentSimulation() {
                   flexDirection: "column",
                 }}
               >
-                <div style={{ flex: 1, overflowY: "auto" }}>
+                <div
+                  style={{
+                    flex: 1,
+                    overflowY: "auto",
+                    msOverflowStyle: "none" /* IE and Edge */,
+                    scrollbarWidth: "none" /* Firefox */,
+                  }}
+                >
+                  <style>
+                    {`
+                      div::-webkit-scrollbar {
+                        display: none;  /* Chrome, Safari and Opera */
+                      }
+                    `}
+                  </style>
                   {message_content}
                 </div>
                 <hr className="my-4" />
