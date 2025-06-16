@@ -30,56 +30,55 @@ export default function ScenarioSelection() {
   } else {
     scenarios = (data as [Scenario]) || [];
     content = (
-      <form onSubmit={handleSubmit}>
-        <div className="field">
-          <label className="label">Select a Scenario</label>
-          <div className="control">
-            <div className="select is-fullwidth">
-              <select
-                name="selectedScenario"
-                value={selectedScenario}
-                onChange={handleScenarioChange}
-              >
-                {Object.entries(scenarios).map(([id, scenario]) => (
-                  <option key={id} value={id}>
-                    {scenario.name}
-                  </option>
-                ))}
-              </select>
+      <div>
+        <div className="has-text-centered mb-2">
+          <button
+            type="submit"
+            className="button is-primary is-normal"
+            onClick={handleSubmit}
+          >
+            Select Scenario
+          </button>
+        </div>
+        <div className="container is-fluid">
+          <div className="box">
+            <div className="field">
+              <label className="label">Select a Scenario</label>
+              <div className="control">
+                <div className="select is-fullwidth">
+                  <select
+                    name="selectedScenario"
+                    value={selectedScenario}
+                    onChange={handleScenarioChange}
+                  >
+                    {Object.entries(scenarios).map(([id, scenario]) => (
+                      <option key={id} value={id}>
+                        {scenario.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            <div className="field">
+              <label className="label">Description</label>
+              <div className="control">
+                <textarea
+                  className="textarea is-normal has-fixed-size hide-scrollbar"
+                  name="description"
+                  value={scenarios[selectedScenario]?.description || ""}
+                  readOnly
+                  placeholder="Scenario description will appear here..."
+                  style={{ resize: "none" }}
+                />
+              </div>
             </div>
           </div>
         </div>
-
-        <div className="field">
-          <label className="label">Description</label>
-          <div className="control">
-            <textarea
-              className="textarea"
-              name="description"
-              value={scenarios[selectedScenario]?.description || ""}
-              readOnly
-              placeholder="Scenario description will appear here..."
-            />
-          </div>
-        </div>
-
-        <div className="field">
-          <div className="control has-text-centered">
-            <button type="submit" className="button is-primary is-large">
-              Select Scenario
-            </button>
-          </div>
-        </div>
-      </form>
+      </div>
     );
   }
 
-  return (
-    <div className="container mt-5">
-      <div className="box">
-        <h2 className="title is-2">Scenario Selection</h2>
-        {content}
-      </div>
-    </div>
-  );
+  return <div className="section">{content}</div>;
 }

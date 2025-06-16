@@ -11,6 +11,7 @@ export interface AgentResponse {
   author: string;
   message_id: string | null;
   audio?: string; // Base64 encoded audio data
+  markdown_text?: string; // Markdown formatted feedback text
 }
 
 export interface Agent {

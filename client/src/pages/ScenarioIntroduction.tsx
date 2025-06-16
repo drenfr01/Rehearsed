@@ -1,5 +1,6 @@
 import { useFetchCurrentScenarioQuery } from "../store";
 import { useNavigate } from "react-router-dom";
+import "./ScenarioIntroduction.css";
 
 export default function ScenarioIntroduction() {
   const navigate = useNavigate();
@@ -14,29 +15,28 @@ export default function ScenarioIntroduction() {
     );
   } else {
     content = (
-      <div className="container">
-        <div className="box">
-          <h2 className="title is-2">Scenario Overview</h2>
-          <div className="field">
-            <label className="label">Scenario Overview</label>
-            <div className="control">
-              <textarea
-                className="textarea is-medium has-fixed-size"
-                readOnly
-                value={data?.overview}
-                rows={10}
-                style={{ resize: "none" }}
-              />
-            </div>
-          </div>
-          <div className="field">
-            <div className="control has-text-centered">
-              <button
-                className="button is-primary is-large"
-                onClick={() => navigate("/agent-simulation")}
-              >
-                Start Simulation
-              </button>
+      <div>
+        <div className="has-text-centered mb-2">
+          <button
+            className="button is-primary is-normal"
+            onClick={() => navigate("/agent-simulation")}
+          >
+            Start Simulation
+          </button>
+        </div>
+        <div className="container is-fluid">
+          <div className="box">
+            <div className="field">
+              <label className="label">Scenario Overview</label>
+              <div className="control">
+                <textarea
+                  className="textarea is-normal has-fixed-size hide-scrollbar"
+                  readOnly
+                  value={data?.overview}
+                  rows={20}
+                  style={{ resize: "none" }}
+                />
+              </div>
             </div>
           </div>
         </div>

@@ -46,17 +46,20 @@ const agentAPI = createApi({
         transformResponse: (response: {
           text: string;
           audio: string | null;
+          markdown_text: string | null;
         }) => {
           console.log("API Response received:", {
             hasText: !!response.text,
             hasAudio: !!response.audio,
+            hasMarkdown: !!response.markdown_text,
           });
           return {
             content: response.text,
-            role: "system",
+            role: "model",
             author: "Assistant",
             message_id: null,
             audio: response.audio || undefined,
+            markdown_text: response.markdown_text || undefined,
           };
         },
       }),

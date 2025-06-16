@@ -1,6 +1,7 @@
 import { useProvideAgentFeedbackMutation } from "../store";
 import Markdown from "react-markdown";
 import { useEffect } from "react";
+import "./ScenarioIntroduction.css";
 
 export default function ScenarioFeedback() {
   const [, results] = useProvideAgentFeedbackMutation({
@@ -48,14 +49,23 @@ export default function ScenarioFeedback() {
     );
   } else {
     content = (
-      <div className="content">
-        <Markdown>{results.data}</Markdown>
+      <div className="container is-fluid">
+        <div className="box">
+          <div className="field">
+            <label className="label">Feedback</label>
+            <div className="control">
+              <div className="content">
+                <Markdown>{results.data.markdown_text}</Markdown>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="box has-background-white-bis">
+    <div className="section">
       <h2 className="title is-4 has-text-primary mb-5 has-text-centered">
         <span className="icon-text">
           <span className="icon">
@@ -64,7 +74,7 @@ export default function ScenarioFeedback() {
           <span>Simulation Feedback</span>
         </span>
       </h2>
-      <div className="px-6">{content}</div>
+      {content}
     </div>
   );
 }

@@ -1,18 +1,18 @@
 import ChatMessage from "../components/ChatMessage";
-import ChatOverview from "../components/ChatOverview";
 import ChatInput from "../components/ChatInput";
-import { AgentResponse } from "../interfaces/AgentInterface";
 import {
   usePostRequestMutation,
   useFetchConversationQuery,
   useProvideAgentFeedbackMutation,
 } from "../store";
 import { useEffect, useState } from "react";
+import ReactMarkdown from "react-markdown";
 
 export default function AgentSimulation() {
   // TODO: these will be set by user login
   const userId = "18";
   const [sessionId, setSessionId] = useState<string>("");
+  const [latestFeedback, setLatestFeedback] = useState<string>("");
 
   const generateNewSessionId = () => {
     const newSessionId = crypto.randomUUID();
@@ -38,6 +38,13 @@ export default function AgentSimulation() {
   const [provideAgentFeedback] = useProvideAgentFeedbackMutation({
     fixedCacheKey: "provideAgentFeedback",
   });
+
+  // Update feedback when we get a new response
+  useEffect(() => {
+    if (results.data?.markdown_text) {
+      setLatestFeedback(results.data.markdown_text);
+    }
+  }, [results.data]);
 
   let message_content;
   if (isFetching) {
@@ -122,7 +129,6 @@ export default function AgentSimulation() {
     <section className="hero is-fullheight">
       <div className="hero-head has-text-centered">
         <div className="container">
-          <ChatOverview />
           <button
             className="button is-primary is-small mt-2"
             onClick={generateNewSessionId}
@@ -132,10 +138,68 @@ export default function AgentSimulation() {
         </div>
       </div>
       <div className="hero-body">
-        <div className="container">{message_content}</div>
+        <div className="container">
+          <div className="columns">
+            {/* Left column - Chat */}
+            <div className="column is-8 pr-4 has-background-white">
+              <div
+                className="box"
+                style={{
+                  height: "100%",
+                  display: "flex",
+                  flexDirection: "column",
+                }}
+              >
+                <div
+                  style={{
+                    flex: 1,
+                    overflowY: "auto",
+                    msOverflowStyle: "none" /* IE and Edge */,
+                    scrollbarWidth: "none" /* Firefox */,
+                  }}
+                >
+                  <style>
+                    {`
+                      div::-webkit-scrollbar {
+                        display: none;  /* Chrome, Safari and Opera */
+                      }
+                    `}
+                  </style>
+                  {message_content}
+                </div>
+                <hr className="my-4" />
+                <div>{content}</div>
+              </div>
+            </div>
+            {/* Right column - Feedback */}
+            <div className="column is-4 pl-4">
+              <div className="box" style={{ height: "100%" }}>
+                <h3 className="title is-5">Feedback</h3>
+                <div className="content">
+                  {latestFeedback ? (
+                    <ReactMarkdown>{latestFeedback}</ReactMarkdown>
+                  ) : (
+                    <p>No feedback yet</p>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
       <div className="hero-foot">
-        <footer className="section is-small">{content}</footer>
+        <footer className="section is-small">
+          <div className="container">
+            <div className="columns">
+              <div className="column is-8">
+                {/* Empty column to align with the chat panel */}
+              </div>
+              <div className="column is-4">
+                {/* Empty column to align with the feedback panel */}
+              </div>
+            </div>
+          </div>
+        </footer>
       </div>
     </section>
   );

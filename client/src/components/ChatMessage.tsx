@@ -1,11 +1,13 @@
 import ReactMarkdown from "react-markdown";
-import { FaRobot, FaUser, FaPlay } from "react-icons/fa";
+import { FaRobot, FaUser, FaPlay, FaStop } from "react-icons/fa";
 import { AgentResponse } from "../interfaces/AgentInterface";
-import { useState } from "react";
+import { useState, useRef } from "react";
 
 export default function ChatMessage({ message }: { message: AgentResponse }) {
   const isUser = message.role === "user";
   const [audioUrl, setAudioUrl] = useState<string | null>(null);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
 
   const playAudio = () => {
     if (message.audio && !audioUrl) {
@@ -28,19 +30,36 @@ export default function ChatMessage({ message }: { message: AgentResponse }) {
 
         // Play the audio
         const audio = new Audio(url);
+        audioRef.current = audio;
         audio.onended = () => {
           URL.revokeObjectURL(url);
           setAudioUrl(null);
+          setIsPlaying(false);
         };
         audio.play();
+        setIsPlaying(true);
       } catch (error) {
         console.error("Error playing audio:", error);
         console.log("Audio data:", message.audio);
       }
     } else if (audioUrl) {
-      // If we already have a URL, just play it
-      const audio = new Audio(audioUrl);
-      audio.play();
+      if (isPlaying) {
+        // Stop the audio
+        audioRef.current?.pause();
+        audioRef.current = null;
+        setIsPlaying(false);
+      } else {
+        // Play the audio
+        const audio = new Audio(audioUrl);
+        audioRef.current = audio;
+        audio.onended = () => {
+          URL.revokeObjectURL(audioUrl);
+          setAudioUrl(null);
+          setIsPlaying(false);
+        };
+        audio.play();
+        setIsPlaying(true);
+      }
     }
   };
 
@@ -82,13 +101,15 @@ export default function ChatMessage({ message }: { message: AgentResponse }) {
                         <ReactMarkdown>{message.content}</ReactMarkdown>
                         {message.audio && (
                           <button
-                            className="button is-small is-info mt-2"
+                            className={`button is-small ${
+                              isPlaying ? "is-danger" : "is-info"
+                            } mt-2`}
                             onClick={playAudio}
                           >
                             <span className="icon">
-                              <FaPlay />
+                              {isPlaying ? <FaStop /> : <FaPlay />}
                             </span>
-                            <span>Play Response</span>
+                            <span>{isPlaying ? "Stop" : "Play Response"}</span>
                           </button>
                         )}
                       </div>

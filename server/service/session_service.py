@@ -1,29 +1,44 @@
 import base64
-from google.adk.runners import Runner
+import os
 
-from server.agents.agent import call_agent_async
+from google.adk.sessions import Session
+from google.adk.sessions.database_session_service import DatabaseSessionService
+
 from server.models.agent_interface import Conversation, ConversationTurn
-from server.service.agent_service import AgentService, AgentType
-from server.service.scenario_service import ScenarioService
 from server.service.text_to_speech_service import TextToSpeechService
 
 
-class AgentServiceRequest(AgentService):
-    def __init__(
-        self, scenario_service: ScenarioService, agent_type: AgentType = AgentType.ROOT
-    ):
-        super().__init__(scenario_service=scenario_service, agent_type=agent_type)
+class SessionService:
+    def __init__(self):
+        self.app_name = os.getenv("APP_NAME", "Time to Teach")
+        db_url = os.getenv("DB_PATH")
+        self.session_service = DatabaseSessionService(db_url=f"sqlite:///{db_url}")
         self.text_to_speech_service = TextToSpeechService()
 
-    async def request_agent_response(
-        self,
-        runner: Runner,
-        user_id: str,
-        session_id: str,
-        message: str,
-    ):
-        self.initialize_agent(user_id, session_id)
-        return await call_agent_async(message, runner, user_id, session_id)
+    def get_session_service(self) -> DatabaseSessionService:
+        return self.session_service
+
+    async def get_or_create_session(self, user_id: str, session_id: str) -> Session:
+        """Either retrieves an existing session or creates a new one
+
+        Args:
+            user_id (str): The user ID
+            session_id (str): The session ID
+
+        Returns:
+            Session: The session
+        """
+        session = await self.session_service.get_session(
+            app_name=self.app_name, user_id=user_id, session_id=session_id
+        )
+        if session is None:
+            print(f"Creating session for user {user_id} and session {session_id}")
+            session = await self.session_service.create_session(
+                app_name=self.app_name,
+                user_id=user_id,
+                session_id=session_id,
+            )
+        return session
 
     async def get_session_content(
         self,
@@ -31,11 +46,18 @@ class AgentServiceRequest(AgentService):
         session_id: str,
     ) -> Conversation:
         """Gets the session for a given user and session id. Session is always initialized"""
-        saved_session = self.get_or_create_session(user_id, session_id)
+        print(f"Getting session content for user {user_id} and session {session_id}")
+        saved_session = await self.get_or_create_session(user_id, session_id)
         conversation = Conversation(turns=[])
 
         for event in saved_session.events:
-            if event.content and event.content.parts and event.content.parts[0].text:
+            # TODO: make an enum with agent names here. This is a hack
+            if (
+                event.content
+                and event.content.parts
+                and event.content.parts[0].text
+                and event.author != "feedback_agent"
+            ):
                 # Generate audio for system responses
                 audio_content = None
                 # TODO: make an enum with "user" and "model" here
