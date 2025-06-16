@@ -1,7 +1,8 @@
-# from server.service.agent_service_request import AgentServiceRequest
-# from server.service.scenario_service import ScenarioService
+from server.service.agent_service import AgentService
 
-# scenario_service = ScenarioService()
-# agent_service = AgentServiceRequest(scenario_service)
+from server.service.scenario_service import ScenarioService
 
-# root_agent = agent_service.root_agent
+scenario_service = ScenarioService()
+agent_service = AgentService(scenario_service)
+
+root_agent = agent_service.root_agent
