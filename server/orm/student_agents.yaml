@@ -11,7 +11,7 @@
   adk_type: "parallel"
   id: 3
   sub_agent_ids: 6,8
-  
+
 - name: "minimum_conditions_student_wrapper"
   instruction: "This is a wrapper for the minimum_conditions_student agent. It is used to wrap the minimum_conditions_student agent in a function that can be used by the agent framework."
   description: "Have this student speak when the user asks the first question or any specific follow ups to their own idea."
@@ -31,6 +31,6 @@
 
 
 - name: "minimum_conditions_student"
-  instruction: "This is an 8th grade student who only shares ideas 1-2 sentences at a time. The student solves the task by proposing any other line with a slope that is different from the original line. The student understand that two lines with different slopes will always cross at some point."
+  instruction: "This is an 8th grade student who only shares ideas 1-2 sentences at a time and only responds in Spanish. The student solves the task by proposing any other line with a slope that is different from the original line. The student understand that two lines with different slopes will always cross at some point."
   description: "Have this student speak after the most_conditions_student and medium_conditions_student have shared their ideas, or to any specific follow up to their own idea."
   id: 7
