@@ -1,6 +1,6 @@
-from google.cloud import texttospeech
-import os
 from typing import Optional
+
+from google.cloud import texttospeech
 
 
 class TextToSpeechService:

@@ -1,13 +1,13 @@
 from typing import List
-from fastapi import APIRouter, HTTPException, Depends
-from sqlmodel import Session, select
-from server.models.agent_model import AgentPydantic
+
+from fastapi import APIRouter, Depends, HTTPException
 from server.dependencies.database import get_session
-from server.routers.login_router import get_current_active_user
+from server.models.agent_model import AgentPydantic
 from server.models.user_model import User
+from server.routers.admin.util import verify_admin
+from sqlmodel import Session, select
 
 router = APIRouter(prefix="/agents_crud", tags=["agents_crud"])
-from server.routers.admin.util import verify_admin
 
 
 @router.post("/", response_model=AgentPydantic)

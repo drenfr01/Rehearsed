@@ -1,27 +1,20 @@
-import base64
-from google.adk.runners import Runner
-
-from server.models.agent_interface import Conversation, ConversationTurn
-from server.models.agent_model import AgentResponse, ADKType
-from server.service.agent_service import AgentService, AgentType
-from server.service.scenario_service import ScenarioService
-from server.service.text_to_speech_service import TextToSpeechService
-from google.adk.runners import Runner
+from google.adk.artifacts import InMemoryArtifactService
+from google.adk.runners import LiveRequestQueue, RunConfig, Runner
 from google.genai import types
 
+from server.models.agent_model import AgentResponse
+from server.service.agent_service import AgentService
+from server.service.session_service import SessionService
 
 ROOT_AGENT_MODEL = "gemini-2.5-pro-preview-03-25"
 STUDENT_AGENT_MODEL = "gemini-2.5-pro-preview-03-25"
 FEEDBACK_AGENT_MODEL = "gemini-2.5-pro-preview-03-25"
 
 
-class AgentServiceRequest(AgentService):
-    # TODO: refactor this to not take in an AgentType
-    def __init__(
-        self, scenario_service: ScenarioService, agent_type: AgentType = AgentType.ROOT
-    ):
-        super().__init__(scenario_service=scenario_service, agent_type=agent_type)
-        self.text_to_speech_service = TextToSpeechService()
+class AgentRequestService:
+    def __init__(self, agent_service: AgentService):
+        self.session_service = SessionService()
+        self.agent_service = agent_service
 
     async def request_agent_response(
         self,
@@ -30,57 +23,45 @@ class AgentServiceRequest(AgentService):
         session_id: str,
         message: str,
     ) -> AgentResponse:
+        self.initialize_runner(user_id, session_id)
         return await self.call_agent_async(message, runner, user_id, session_id)
 
-    async def get_session_content(
+    async def initialize_runner(
         self,
         user_id: str,
         session_id: str,
-    ) -> Conversation:
-        """Gets the session for a given user and session id. Session is always initialized"""
-        print(f"Getting session content for user {user_id} and session {session_id}")
-        saved_session = await self.get_or_create_session(user_id, session_id)
-        conversation = Conversation(turns=[])
+    ) -> None:
+        """Starts an agent session"""
 
-        for event in saved_session.events:
-            if event.content and event.content.parts and event.content.parts[0].text:
-                # Generate audio for system responses
-                audio_content = None
-                # TODO: make an enum with "user" and "model" here
-                if event.content.role == "model":
-                    print(
-                        f"Generating audio for system message: {event.content.parts[0].text[:100]}..."
-                    )
-                    audio_content = await self.text_to_speech_service.text_to_speech(
-                        event.content.parts[0].text
-                    )
-                    print(f"Audio content generated: {audio_content is not None}")
-                    if audio_content:
-                        # Properly encode the audio content as base64
-                        audio_content = base64.b64encode(audio_content).decode("utf-8")
-                        print(f"Audio content encoded: {len(audio_content)} bytes")
+        session = await self.session_service.get_or_create_session(user_id, session_id)
 
-                conversation_turn = ConversationTurn(
-                    content=event.content.parts[0].text,
-                    role=event.content.role,
-                    author=event.author,
-                    message_id=event.id,
-                    audio=audio_content,
-                )
-                print(
-                    f"Conversation turn created with audio: {conversation_turn.audio is not None}"
-                )
-                conversation.turns.append(conversation_turn)
+        # Create a Runner
+        self.runner = Runner(
+            app_name=self.agent_service.app_name,
+            agent=self.agent_service.root_agent,
+            session_service=self.session_service,
+            artifact_service=InMemoryArtifactService(),
+        )
 
-        print(f"Conversation: {conversation}")
-        return conversation
+        # Set response modality = TEXT
+        run_config = RunConfig(response_modalities=["TEXT"])
+
+        # Create a LiveRequestQueue for this session
+        self.live_request_queue = LiveRequestQueue()
+
+        # Start agent session
+        self.live_events = self.runner.run_live(
+            session=session,
+            live_request_queue=self.live_request_queue,
+            run_config=run_config,
+        )
 
     async def handle_media_types(
         self, runner: Runner, user_id: str, session_id: str, filename: str
     ) -> str:
         """Handles the media types for the agent"""
         text_part = await runner.artifact_service.load_artifact(
-            app_name=self.app_name,
+            app_name=self.agent_service.app_name,
             user_id=user_id,
             session_id=session_id,
             filename=filename,
@@ -113,7 +94,7 @@ class AgentServiceRequest(AgentService):
 
             # Key Concept: is_final_response() marks the concluding message for the turn.
             if event.is_final_response():
-                agent_pydantic, _ = self.get_agent(event.author)
+                agent_pydantic, _ = self.agent_service.get_agent(event.author)
                 if agent_pydantic.name == "feedback_agent":
                     text_str = event.content.parts[0].text
 

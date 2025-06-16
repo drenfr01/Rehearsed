@@ -13,14 +13,13 @@ from server.routers import (
     login_router,
     scenario_router,
 )
-from server.service.gemini_service import GeminiService
-from server.service.scenario_service import ScenarioService
-
-from server.routers.admin.scenarios_crud import router as scenarios_crud_router
 from server.routers.admin.agents_crud import router as agents_crud_router
+from server.routers.admin.scenarios_crud import router as scenarios_crud_router
 from server.routers.admin.subagent_links_crud import (
     router as subagent_links_crud_router,
 )
+from server.service.agent_service import AgentService
+from server.service.scenario_service import ScenarioService
 
 
 @asynccontextmanager
@@ -29,11 +28,8 @@ async def lifespan(app: FastAPI):
     initialize_clean_db()
     initialize_all_sample_data()
 
-    scenario_service = ScenarioService()
-    gemini_service = GeminiService(scenario_service)
     yield {
-        "gemini_service": gemini_service,
-        "scenario_service": scenario_service,
+        "agent_service": AgentService(ScenarioService()),
     }
 
 

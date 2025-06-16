@@ -1,20 +1,14 @@
-import os
 import importlib
+import os
+from enum import Enum
+
+from google.adk.agents import Agent, SequentialAgent
 from google.adk.tools import FunctionTool
-from google.adk.agents import Agent, LiveRequestQueue, SequentialAgent
-from google.adk.agents.run_config import RunConfig
-from google.adk.runners import Runner
-from google.adk.sessions import Session
-from google.adk.sessions.database_session_service import DatabaseSessionService
 from sqlmodel import select
 
-from server.dependencies.database import engine, get_session
-from server.models.agent_model import AgentPydantic, SubAgentLink, ADKType
+from server.dependencies.database import get_session
+from server.models.agent_model import ADKType, AgentPydantic, SubAgentLink
 from server.service.scenario_service import ScenarioService
-
-from google.adk.artifacts import InMemoryArtifactService
-
-from enum import Enum
 
 
 class AgentType(Enum):
@@ -25,14 +19,12 @@ class AgentType(Enum):
 PATH_TO_TOOLS = "server.tools"
 
 
+# TODO: refactor this to not take in an AgentType and have generic get_agent by name
 class AgentService:
     def __init__(
         self, scenario_service: ScenarioService, agent_type: AgentType = AgentType.ROOT
     ):
         self.app_name = os.getenv("APP_NAME", "Time to Teach")
-        # self.session_service = InMemorySessionService()
-        db_url = os.getenv("DB_PATH")
-        self.session_service = DatabaseSessionService(db_url=f"sqlite:///{db_url}")
         self.runner = None
         self.live_events = None
         self.live_request_queue = None
@@ -210,48 +202,4 @@ class AgentService:
             description=feedback_agent.description,
             instruction=feedback_agent.instruction,
             model=feedback_agent.model,
-        )
-
-    async def get_or_create_session(self, user_id: str, session_id: str) -> Session:
-        session = await self.session_service.get_session(
-            app_name=self.app_name, user_id=user_id, session_id=session_id
-        )
-        if session is None:
-            print(f"Creating session for user {user_id} and session {session_id}")
-            session = await self.session_service.create_session(
-                app_name=self.app_name,
-                user_id=user_id,
-                session_id=session_id,
-            )
-        return session
-
-    async def initialize_agent(
-        self,
-        user_id: str,
-        session_id: str,
-    ) -> None:
-        """Starts an agent session"""
-
-        # TODO: can pass in initial state here
-        session = await self.get_or_create_session(user_id, session_id)
-
-        # Create a Runner
-        self.runner = Runner(
-            app_name=self.app_name,
-            agent=self.root_agent,
-            session_service=self.session_service,
-            artifact_service=InMemoryArtifactService(),
-        )
-
-        # Set response modality = TEXT
-        run_config = RunConfig(response_modalities=["TEXT"])
-
-        # Create a LiveRequestQueue for this session
-        self.live_request_queue = LiveRequestQueue()
-
-        # Start agent session
-        self.live_events = self.runner.run_live(
-            session=session,
-            live_request_queue=self.live_request_queue,
-            run_config=run_config,
         )

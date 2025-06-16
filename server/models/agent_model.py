@@ -1,7 +1,8 @@
+from enum import Enum
+from typing import Literal
+
 from pydantic import BaseModel
 from sqlmodel import Field, SQLModel, String
-from typing import Literal
-from enum import Enum
 
 
 class AgentResponse(BaseModel):
