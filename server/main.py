@@ -28,11 +28,9 @@ async def lifespan(app: FastAPI):
     initialize_clean_db()
     initialize_all_sample_data()
 
-    scenario_service = ScenarioService()
-    yield {
-        "agent_service": AgentService(scenario_service),
-        "scenario_service": scenario_service,
-    }
+    app.state.scenario_service = ScenarioService()
+    app.state.agent_service = AgentService(app.state.scenario_service)
+    yield
 
 
 load_dotenv()
