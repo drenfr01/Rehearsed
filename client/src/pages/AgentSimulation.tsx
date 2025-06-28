@@ -73,85 +73,52 @@ export default function AgentSimulation() {
   }, [results.data, results.isLoading]);
 
   let message_content;
-  if (results.isLoading) {
+  if (conversation.length > 0) {
+    message_content = (
+      <div>
+        {conversation.map((response: AgentResponse) => (
+          <ChatMessage key={response.message_id} message={response} />
+        ))}
+      </div>
+    );
+  } else {
     message_content = (
       <div className="container">
         <div className="columns is-centered">
           <div className="column is-half">
-            <div className="box" style={{ marginTop: "2rem" }}>
-              <div className="has-text-centered">
-                <div className="button is-loading is-large is-white"></div>
-                <p className="mt-3">Loading...</p>
+            <div
+              className="box has-text-centered"
+              style={{ marginTop: "2rem" }}
+            >
+              <h2 className="title is-4 mb-4">Welcome to Time to Teach!</h2>
+              <p className="subtitle is-6">
+                Start your conversation with the students to begin your teaching
+                journey.
+              </p>
+              <div className="mt-4">
+                <span className="icon is-large">
+                  <i className="fas fa-robot fa-2x"></i>
+                </span>
               </div>
             </div>
           </div>
         </div>
       </div>
     );
-  } else if (results.error) {
-    message_content = <div>Error: {results.error.toString()}</div>;
-  } else {
-    if (conversation.length > 0) {
-      message_content = (
-        <div>
-          {conversation.map((response: AgentResponse) => (
-            <ChatMessage key={response.message_id} message={response} />
-          ))}
-        </div>
-      );
-    } else {
-      message_content = (
-        <div className="container">
-          <div className="columns is-centered">
-            <div className="column is-half">
-              <div
-                className="box has-text-centered"
-                style={{ marginTop: "2rem" }}
-              >
-                <h2 className="title is-4 mb-4">Welcome to Time to Teach!</h2>
-                <p className="subtitle is-6">
-                  Start your conversation with the students to begin your
-                  teaching journey.
-                </p>
-                <div className="mt-4">
-                  <span className="icon is-large">
-                    <i className="fas fa-robot fa-2x"></i>
-                  </span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      );
-    }
   }
 
-  // TODO: add in loading spinner
-  let content = (
+  // Pass loading state to ChatInput
+  const content = (
     <ChatInput
       postRequest={postRequest}
       provideAgentFeedback={provideAgentFeedback}
       userId={userId}
       sessionId={sessionId}
       onUserMessage={handleUserMessage}
+      isLoading={results.isLoading}
     />
   );
-  if (results.isLoading) {
-    content = (
-      <div className="container">
-        <div className="columns is-centered">
-          <div className="column is-half">
-            <div className="box" style={{ marginTop: "2rem" }}>
-              <div className="has-text-centered">
-                <div className="button is-loading is-large is-white"></div>
-                <p className="mt-3">Loading...</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
+
   return (
     <section className="hero is-fullheight">
       <div className="hero-head has-text-centered">
@@ -203,7 +170,12 @@ export default function AgentSimulation() {
               <div className="box" style={{ height: "100%" }}>
                 <h3 className="title is-5">Feedback</h3>
                 <div className="content">
-                  {latestFeedback ? (
+                  {results.isLoading ? (
+                    <div className="has-text-centered">
+                      <div className="button is-loading is-small is-white"></div>
+                      <p className="mt-2">Loading feedback...</p>
+                    </div>
+                  ) : latestFeedback ? (
                     <ReactMarkdown>{latestFeedback}</ReactMarkdown>
                   ) : (
                     <p>No feedback yet</p>
