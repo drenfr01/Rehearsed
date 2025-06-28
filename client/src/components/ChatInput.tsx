@@ -63,7 +63,9 @@ export default function ChatInput({
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    // TODO: make this dynamic based on the scenario
     postRequest({
+      agentName: "root_agent",
       message,
       userId: userId,
       sessionId: sessionId,

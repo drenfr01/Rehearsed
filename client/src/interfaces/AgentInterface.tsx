@@ -1,4 +1,5 @@
 export interface AgentRequest {
+  agentName: string;
   message: string;
   sessionId: string;
   userId: string;

@@ -28,6 +28,7 @@ const agentAPI = createApi({
         ],
         query: (agentRequest: AgentRequest) => {
           const formData = new FormData();
+          formData.append("agent_name", agentRequest.agentName);
           formData.append("message", agentRequest.message);
           formData.append("user_id", agentRequest.userId);
           formData.append("session_id", agentRequest.sessionId);

@@ -39,7 +39,11 @@ class AgentRequestService:
 
         session = await self.session_service.get_or_create_session(user_id, session_id)
 
-        root_agent = self.agent_service.lookup_agent(root_agent_name)
+        root_agent = self.agent_service.lookup_agent(root_agent_name).agent
+        if not root_agent:
+            raise ValueError(f"Root agent {root_agent_name} not found")
+
+        print(f"Root agent: {root_agent.name}")
         self.runner = Runner(
             app_name=self.agent_service.app_name,
             agent=root_agent,
@@ -104,8 +108,8 @@ class AgentRequestService:
 
             # Key Concept: is_final_response() marks the concluding message for the turn.
             if event.is_final_response():
-                agent_pydantic, _ = self.agent_service.get_agent(event.author)
-                if agent_pydantic.name == "feedback_agent":
+                in_memory_agent = self.agent_service.lookup_agent(event.author)
+                if in_memory_agent.agent_pydantic.name == "feedback_agent":
                     text_str = event.content.parts[0].text
 
                 if event.content and event.content.parts:

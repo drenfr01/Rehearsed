@@ -66,17 +66,14 @@ async def request_agent_response(
     audio: Optional[UploadFile] = File(None),
     agent_request_service: AgentRequestService = Depends(get_agent_service_request),
 ) -> JSONResponse:
-    # If there's an audio file, process it
     if audio:
         audio_content = await audio.read()
-        # Transcribe the audio
         transcript = await speech_to_text_service.transcribe_audio(audio_content)
 
         if transcript:
-            # Combine the transcribed text with the original message
             message = transcript
 
-    # Get the agent's response
+    print(f"Requesting agent response for agent {agent_name}")
     response = await agent_request_service.request_agent_response(
         agent_name,
         user_id,
@@ -84,12 +81,10 @@ async def request_agent_response(
         message,
     )
 
-    # Convert the response to speech
     audio_content = await text_to_speech_service.text_to_speech(
         response.agent_response_text
     )
 
-    # Return both the text response and audio content
     print("Sending back Agent Response")
     return JSONResponse(
         content={
