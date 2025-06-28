@@ -41,6 +41,7 @@ async def get_agent_service_streaming() -> AgentServiceStreaming:
 
 
 class AgentRequest(BaseModel):
+    agent_name: str
     message: str
     session_id: str
     user_id: str
@@ -58,15 +59,13 @@ async def start_session(
 
 @router.post("/request")
 async def request_agent_response(
+    agent_name: str = Form(...),
     message: str = Form(...),
     user_id: str = Form(...),
     session_id: str = Form(...),
     audio: Optional[UploadFile] = File(None),
     agent_request_service: AgentRequestService = Depends(get_agent_service_request),
 ) -> JSONResponse:
-    # Initialize the agent service
-    await agent_request_service.initialize_runner(user_id, session_id)
-
     # If there's an audio file, process it
     if audio:
         audio_content = await audio.read()
@@ -79,7 +78,7 @@ async def request_agent_response(
 
     # Get the agent's response
     response = await agent_request_service.request_agent_response(
-        agent_request_service.runner,
+        agent_name,
         user_id,
         session_id,
         message,
@@ -119,11 +118,8 @@ async def request_feedback(
     ),
 ):
     print(f"Requesting feedback for session {agent_request.session_id}")
-    await agent_request_service.initialize_runner(
-        agent_request.user_id, agent_request.session_id
-    )
     return await agent_request_service.request_agent_response(
-        agent_request_service.runner,
+        agent_request.agent_name,
         agent_request.user_id,
         agent_request.session_id,
         agent_request.message,

@@ -1,6 +1,7 @@
 from enum import Enum
 from typing import Literal
 
+from google.adk.agents import BaseAgent
 from pydantic import BaseModel
 from sqlmodel import Field, SQLModel, String
 
@@ -39,9 +40,9 @@ class AgentPydantic(SQLModel, table=True):
     id: int = Field(default=None, primary_key=True, unique=True)
     scenario_id: int = Field(default=None, foreign_key="scenario.id")
     name: str = Field(default=None)
-    adk_type: Literal[ADKType.LLM, ADKType.SEQUENTIAL] = Field(
-        default=ADKType.LLM, sa_type=String
-    )
+    adk_type: Literal[
+        ADKType.LLM.value, ADKType.SEQUENTIAL.value, ADKType.PARALLEL.value
+    ] = Field(default=ADKType.LLM.value, sa_type=String)
     media_type: Literal[MediaType.NONE, MediaType.TEXT] = Field(
         default=MediaType.NONE, sa_type=String
     )
@@ -60,3 +61,8 @@ class SubAgentLink(SQLModel, table=True):
     sub_agent_id: int = Field(
         default=None, foreign_key="agentpydantic.id", primary_key=True
     )
+
+
+class InMemoryAgent(BaseModel):
+    agent_pydantic: AgentPydantic
+    agent: BaseAgent | None

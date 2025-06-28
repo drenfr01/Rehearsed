@@ -6,50 +6,51 @@ from server.models.agent_model import AgentResponse
 from server.service.agent_service import AgentService
 from server.service.session_service import SessionService
 
-ROOT_AGENT_MODEL = "gemini-2.5-pro-preview-03-25"
-STUDENT_AGENT_MODEL = "gemini-2.5-pro-preview-03-25"
-FEEDBACK_AGENT_MODEL = "gemini-2.5-pro-preview-03-25"
-
 
 class AgentRequestService:
     def __init__(self, agent_service: AgentService):
         self.session_service = SessionService()
         self.agent_service = agent_service
+        self.runner = None
 
     async def request_agent_response(
         self,
-        runner: Runner,
+        root_agent_name: str,
         user_id: str,
         session_id: str,
         message: str,
     ) -> AgentResponse:
-        await self.initialize_runner(user_id, session_id)
-        return await self.call_agent_async(message, runner, user_id, session_id)
+        await self.initialize_runner(user_id, session_id, root_agent_name)
+        return await self.call_agent_async(message, user_id, session_id)
 
     async def initialize_runner(
         self,
         user_id: str,
         session_id: str,
+        root_agent_name: str,
     ) -> None:
-        """Starts an agent session"""
+        """Starts an agent session
+
+        Args:
+            user_id: The user ID
+            session_id: The session ID
+            root_agent_name: The name of the root agent
+        """
 
         session = await self.session_service.get_or_create_session(user_id, session_id)
 
-        # Create a Runner
+        root_agent = self.agent_service.lookup_agent(root_agent_name)
         self.runner = Runner(
             app_name=self.agent_service.app_name,
-            agent=self.agent_service.root_agent,
+            agent=root_agent,
             session_service=self.session_service.get_session_service(),
             artifact_service=InMemoryArtifactService(),
         )
 
-        # Set response modality = TEXT
         run_config = RunConfig(response_modalities=["TEXT"])
 
-        # Create a LiveRequestQueue for this session
         self.live_request_queue = LiveRequestQueue()
 
-        # Start agent session
         self.live_events = self.runner.run_live(
             session=session,
             live_request_queue=self.live_request_queue,
@@ -69,22 +70,31 @@ class AgentRequestService:
         return text_part.text
 
     async def call_agent_async(
-        self, query: str, runner: Runner, user_id: str, session_id: str
+        self, query: str, user_id: str, session_id: str
     ) -> AgentResponse:
-        text_str = None
-        """Sends a query to the agent and prints the final response."""
-        print(f"\n>>> User Query: {query}")
+        """Sends a query to the agent and prints the final response.
 
+        Args:
+            query: The query to send to the agent
+            user_id: The user ID
+            session_id: The session ID
+
+        Returns:
+            The final response from the agent
+        """
+        text_str = None
+        print(f"\n>>> User Query: {query}")
         # Prepare the user's message in ADK format
         content = types.Content(role="user", parts=[types.Part(text=query)])
 
         final_response_text = "Agent did not produce a final response."  # Default
 
-        print(f"Running root agent with model {ROOT_AGENT_MODEL}")
-
         # Key Concept: run_async executes the agent logic and yields Events.
         # We iterate through events to find the final answer.
-        async for event in runner.run_async(
+        if not self.runner:
+            raise ValueError("Runner not initialized")
+
+        async for event in self.runner.run_async(
             user_id=user_id, session_id=session_id, new_message=content
         ):
             # You can uncomment the line below to see *all* events during execution
