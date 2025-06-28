@@ -10,6 +10,7 @@ interface ChatInputProps {
   >[0];
   userId: string;
   sessionId: string;
+  onUserMessage?: (message: string) => void;
 }
 
 export default function ChatInput({
@@ -17,6 +18,7 @@ export default function ChatInput({
   provideAgentFeedback,
   userId,
   sessionId,
+  onUserMessage,
 }: ChatInputProps) {
   const [message, setMessage] = useState("");
   const [isRecording, setIsRecording] = useState(false);
@@ -63,6 +65,10 @@ export default function ChatInput({
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    // Call onUserMessage callback if provided
+    if (onUserMessage) {
+      onUserMessage(message);
+    }
     // TODO: make this dynamic based on the scenario
     postRequest({
       agentName: "root_agent",
@@ -80,6 +86,7 @@ export default function ChatInput({
   ) => {
     e.preventDefault();
     provideAgentFeedback({
+      agentName: "root_agent",
       message: "Feedback",
       userId: userId,
       sessionId: sessionId,

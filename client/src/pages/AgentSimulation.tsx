@@ -2,22 +2,26 @@ import ChatMessage from "../components/ChatMessage";
 import ChatInput from "../components/ChatInput";
 import {
   usePostRequestMutation,
-  useFetchConversationQuery,
   useProvideAgentFeedbackMutation,
 } from "../store";
 import { useEffect, useState } from "react";
 import ReactMarkdown from "react-markdown";
+import { AgentResponse } from "../interfaces/AgentInterface";
 
 export default function AgentSimulation() {
   // TODO: these will be set by user login
   const userId = "18";
   const [sessionId, setSessionId] = useState<string>("");
   const [latestFeedback, setLatestFeedback] = useState<string>("");
+  const [conversation, setConversation] = useState<AgentResponse[]>([]);
 
   const generateNewSessionId = () => {
     const newSessionId = crypto.randomUUID();
     localStorage.setItem("sessionId", newSessionId);
     setSessionId(newSessionId);
+    // Clear conversation when starting a new session
+    setConversation([]);
+    setLatestFeedback("");
   };
 
   useEffect(() => {
@@ -31,10 +35,6 @@ export default function AgentSimulation() {
   }, []);
 
   const [postRequest, results] = usePostRequestMutation();
-  const { data, error, isFetching } = useFetchConversationQuery({
-    userId: userId,
-    sessionId: sessionId,
-  });
   const [provideAgentFeedback] = useProvideAgentFeedbackMutation({
     fixedCacheKey: "provideAgentFeedback",
   });
@@ -46,8 +46,34 @@ export default function AgentSimulation() {
     }
   }, [results.data]);
 
+  // Add user message to conversation when they send a message
+  const handleUserMessage = (message: string) => {
+    const userMessage: AgentResponse = {
+      content: message,
+      role: "user",
+      author: "You",
+      message_id: crypto.randomUUID(),
+    };
+    setConversation((prev) => [...prev, userMessage]);
+  };
+
+  // Add agent response to conversation when received
+  useEffect(() => {
+    if (results.data && !results.isLoading) {
+      const agentResponse: AgentResponse = {
+        content: results.data.content,
+        role: "model",
+        author: results.data.author,
+        message_id: results.data.message_id,
+        audio: results.data.audio,
+        markdown_text: results.data.markdown_text,
+      };
+      setConversation((prev) => [...prev, agentResponse]);
+    }
+  }, [results.data, results.isLoading]);
+
   let message_content;
-  if (isFetching) {
+  if (results.isLoading) {
     message_content = (
       <div className="container">
         <div className="columns is-centered">
@@ -62,13 +88,13 @@ export default function AgentSimulation() {
         </div>
       </div>
     );
-  } else if (error) {
-    message_content = <div>Error: {error.toString()}</div>;
+  } else if (results.error) {
+    message_content = <div>Error: {results.error.toString()}</div>;
   } else {
-    if (data.turns.length > 0) {
+    if (conversation.length > 0) {
       message_content = (
         <div>
-          {data?.turns.map((response: AgentResponse) => (
+          {conversation.map((response: AgentResponse) => (
             <ChatMessage key={response.message_id} message={response} />
           ))}
         </div>
@@ -107,6 +133,7 @@ export default function AgentSimulation() {
       provideAgentFeedback={provideAgentFeedback}
       userId={userId}
       sessionId={sessionId}
+      onUserMessage={handleUserMessage}
     />
   );
   if (results.isLoading) {

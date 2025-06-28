@@ -48,16 +48,18 @@ const agentAPI = createApi({
           text: string;
           audio: string | null;
           markdown_text: string | null;
+          author: string | null;
         }) => {
           console.log("API Response received:", {
             hasText: !!response.text,
             hasAudio: !!response.audio,
             hasMarkdown: !!response.markdown_text,
+            author: response.author,
           });
           return {
             content: response.text,
             role: "model",
-            author: "Assistant",
+            author: response.author || "Assistant",
             message_id: null,
             audio: response.audio || undefined,
             markdown_text: response.markdown_text || undefined,
