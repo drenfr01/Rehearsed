@@ -26,13 +26,7 @@ text_to_speech_service = TextToSpeechService()
 
 async def get_agent_service_request(request: Request) -> AgentRequestService:
     return AgentRequestService(
-        agent_service=request.state.agent_service,
-    )
-
-
-async def get_feedback_agent_service_request(request: Request) -> AgentRequestService:
-    return AgentRequestService(
-        agent_service=request.state.agent_service,
+        agent_service=request.app.state.agent_service,
     )
 
 
@@ -108,9 +102,7 @@ async def get_conversation_content(
 @router.post("/feedback")
 async def request_feedback(
     agent_request: AgentRequest,
-    agent_request_service: AgentRequestService = Depends(
-        get_feedback_agent_service_request
-    ),
+    agent_request_service: AgentRequestService = Depends(get_agent_service_request),
 ):
     print(f"Requesting feedback for session {agent_request.session_id}")
     return await agent_request_service.request_agent_response(
