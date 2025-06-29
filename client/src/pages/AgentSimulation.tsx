@@ -22,6 +22,7 @@ export default function AgentSimulation() {
   const [latestFeedback, setLatestFeedback] = useState<string>("");
   const [conversation, setConversation] = useState<AgentResponse[]>([]);
   const [isSwitchingSession, setIsSwitchingSession] = useState<boolean>(false);
+  const [loadingSessionId, setLoadingSessionId] = useState<string>("");
 
   const [createSession] = useCreateSessionMutation();
 
@@ -118,25 +119,81 @@ export default function AgentSimulation() {
   };
 
   const handleSessionSelect = async (selectedSessionId: string) => {
+    console.log("Session selection started:", selectedSessionId);
     setIsSwitchingSession(true);
+    setLoadingSessionId(selectedSessionId);
     setSessionId(selectedSessionId);
     localStorage.setItem("sessionId", selectedSessionId);
     setLatestFeedback("");
-    // Add a small delay to show the loading state
-    await new Promise((resolve) => setTimeout(resolve, 100));
-    setIsSwitchingSession(false);
   };
+
+  // Manage switching state based on actual query loading
+  useEffect(() => {
+    console.log("Session content loading state changed:", {
+      isLoadingSessionContent,
+      loadingSessionId,
+      sessionId,
+    });
+
+    if (isLoadingSessionContent && loadingSessionId) {
+      console.log("Query is loading for session:", loadingSessionId);
+      setIsSwitchingSession(true);
+    } else if (!isLoadingSessionContent && loadingSessionId) {
+      console.log("Query finished loading for session:", loadingSessionId);
+      setIsSwitchingSession(false);
+      setLoadingSessionId("");
+    }
+  }, [isLoadingSessionContent, loadingSessionId, sessionId]);
+
+  // Fallback timeout to prevent stuck loading states
+  useEffect(() => {
+    if (loadingSessionId) {
+      const timeout = setTimeout(() => {
+        console.log(
+          "Timeout fallback triggered for session:",
+          loadingSessionId
+        );
+        console.log("Clearing stuck loading state");
+        setIsSwitchingSession(false);
+        setLoadingSessionId("");
+      }, 3000); // 3 second timeout
+
+      return () => clearTimeout(timeout);
+    }
+  }, [loadingSessionId]);
 
   // Load conversation from server when session content is available
   useEffect(() => {
     if (sessionContent && !isLoadingSessionContent) {
       console.log("Loading conversation from server:", sessionContent);
       const serverConversation = transformServerConversation(sessionContent);
-      setConversation(serverConversation);
-      // Save to localStorage
-      saveConversationToStorage(sessionId, serverConversation);
+
+      // When switching sessions, always use server data
+      if (isSwitchingSession) {
+        console.log("Switching sessions - using server conversation");
+        setConversation(serverConversation);
+        // Save to localStorage
+        saveConversationToStorage(sessionId, serverConversation);
+      } else {
+        // Check if we have local messages that aren't in the server response
+        const localConversation = getConversationFromStorage(sessionId);
+        const hasLocalMessages =
+          localConversation.length > serverConversation.length;
+
+        if (hasLocalMessages) {
+          // Keep local conversation if it has more messages (preserves additional messages)
+          console.log("Keeping local conversation with additional messages");
+          setConversation(localConversation);
+        } else {
+          // Use server conversation if it's more complete
+          console.log("Using server conversation");
+          setConversation(serverConversation);
+          // Save to localStorage
+          saveConversationToStorage(sessionId, serverConversation);
+        }
+      }
     }
-  }, [sessionContent, isLoadingSessionContent, sessionId]);
+  }, [sessionContent, isLoadingSessionContent, sessionId, isSwitchingSession]);
 
   useEffect(() => {
     // Generate a new session ID if one doesn't exist in localStorage
@@ -188,12 +245,14 @@ export default function AgentSimulation() {
         audio: results.data.audio,
         markdown_text: results.data.markdown_text,
       };
-      const updatedConversation = [...conversation, agentResponse];
-      setConversation(updatedConversation);
-      // Save to localStorage
-      saveConversationToStorage(sessionId, updatedConversation);
+      setConversation((prevConversation) => {
+        const updatedConversation = [...prevConversation, agentResponse];
+        // Save to localStorage
+        saveConversationToStorage(sessionId, updatedConversation);
+        return updatedConversation;
+      });
     }
-  }, [results.data, results.isLoading]);
+  }, [results.data, results.isLoading, sessionId]);
 
   let message_content;
   if (isLoadingSessionContent) {
@@ -270,6 +329,7 @@ export default function AgentSimulation() {
               onNewSession={generateNewSessionId}
               onSessionSelect={handleSessionSelect}
               isSwitchingSession={isSwitchingSession}
+              loadingSessionId={loadingSessionId}
             />
 
             {/* Main Chat Column */}

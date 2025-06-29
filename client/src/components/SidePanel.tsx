@@ -7,6 +7,7 @@ interface SidePanelProps {
   onNewSession: () => void;
   onSessionSelect?: (sessionId: string) => void;
   isSwitchingSession?: boolean;
+  loadingSessionId?: string;
 }
 
 export default function SidePanel({
@@ -15,6 +16,7 @@ export default function SidePanel({
   onNewSession,
   onSessionSelect,
   isSwitchingSession = false,
+  loadingSessionId = "",
 }: SidePanelProps) {
   const [isOpen, setIsOpen] = React.useState<boolean>(true);
 
@@ -149,11 +151,12 @@ export default function SidePanel({
                         }}
                       >
                         <strong>Session {session.id.slice(0, 8)}...</strong>
-                        {isSwitchingSession && session.id === sessionId && (
-                          <span className="icon is-small">
-                            <i className="fas fa-spinner fa-spin"></i>
-                          </span>
-                        )}
+                        {isSwitchingSession &&
+                          session.id === loadingSessionId && (
+                            <span className="icon is-small">
+                              <i className="fas fa-spinner fa-spin"></i>
+                            </span>
+                          )}
                       </div>
                       <div style={{ fontSize: "0.65rem", opacity: 0.7 }}>
                         {new Date(
