@@ -1,8 +1,6 @@
 - name: "inline_feedback_agent"
   description: "Once the user reponds in a way that summarizes the previous conversation or says Stop Simulation"
   media_type: "text"
-  tools: "generate_text"
-  modules: "text_tools"
   id: 8
   instruction: | 
     <OBJECTIVE_AND_PERSONA>

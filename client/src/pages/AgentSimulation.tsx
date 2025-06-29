@@ -1,6 +1,7 @@
 import ChatMessage from "../components/ChatMessage";
 import ChatInput from "../components/ChatInput";
 import SidePanel from "../components/SidePanel";
+import FeedbackPanel from "../components/FeedbackPanel";
 import {
   usePostRequestMutation,
   useProvideAgentFeedbackMutation,
@@ -8,7 +9,6 @@ import {
   useGetSessionContentQuery,
 } from "../store";
 import { useEffect, useState } from "react";
-import ReactMarkdown from "react-markdown";
 import { AgentResponse } from "../interfaces/AgentInterface";
 import {
   ConversationResponse,
@@ -331,23 +331,10 @@ export default function AgentSimulation() {
             </div>
 
             {/* Right column - Feedback */}
-            <div className="column is-3 pl-4">
-              <div className="box" style={{ height: "100%" }}>
-                <h3 className="title is-5">Feedback</h3>
-                <div className="content">
-                  {results.isLoading ? (
-                    <div className="has-text-centered">
-                      <div className="button is-loading is-small is-white"></div>
-                      <p className="mt-2">Loading feedback...</p>
-                    </div>
-                  ) : latestFeedback ? (
-                    <ReactMarkdown>{latestFeedback}</ReactMarkdown>
-                  ) : (
-                    <p>No feedback yet</p>
-                  )}
-                </div>
-              </div>
-            </div>
+            <FeedbackPanel
+              isLoading={results.isLoading}
+              latestFeedback={latestFeedback}
+            />
           </div>
         </div>
       </div>
