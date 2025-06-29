@@ -109,29 +109,23 @@ class AgentRequestService:
 
             # Key Concept: is_final_response() marks the concluding message for the turn.
             if event.is_final_response():
-                in_memory_agent = self.agent_service.lookup_agent(event.author)
-                # For the feedback agent, we want to store the text separately
-                if in_memory_agent.agent_pydantic.name == "inline_feedback_agent":
-                    text_str = event.content.parts[0].text
-                else:
-                    event_author = event.author
-                    if event.content and event.content.parts:
-                        # Assuming text response in the first part
-                        final_response_text = event.content.parts[0].text
-                    elif (
-                        event.actions and event.actions.escalate
-                    ):  # Handle potential errors/escalations
-                        final_response_text = f"Agent escalated: {event.error_message or 'No specific message.'}"
-                    # Add more checks here if needed (e.g., specific error codes)
+                event_author = event.author
+                if event.content and event.content.parts:
+                    # Assuming text response in the first part
+                    final_response_text = event.content.parts[0].text
+                elif (
+                    event.actions and event.actions.escalate
+                ):  # Handle potential errors/escalations
+                    final_response_text = f"Agent escalated: {event.error_message or 'No specific message.'}"
+                # Add more checks here if needed (e.g., specific error codes)
 
-                    # Only break if it's an LLM agent, if it's a parallel or sequential agent we will want to aggregate responses
-                    # if self.agent_pydantic.adk_type == ADKType.LLM.value:
-                    #     break  # Stop processing events once the final response is found
+                # Only break if it's an LLM agent, if it's a parallel or sequential agent we will want to aggregate responses
+                # if self.agent_pydantic.adk_type == ADKType.LLM.value:
+                #     break  # Stop processing events once the final response is found
 
         print(f"<<< Agent Response: {final_response_text}")
 
         return AgentResponse(
             agent_response_text=final_response_text,
-            markdown_text=text_str,
             author=event_author,
         )

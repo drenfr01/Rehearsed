@@ -1,11 +1,11 @@
 import ChatMessage from "../components/ChatMessage";
 import ChatOverview from "../components/ChatOverview";
 import ChatInput from "../components/ChatInput";
-import { AgentResponse } from "../interfaces/AgentInterface";
 import {
   usePostRequestMutation,
   useFetchConversationQuery,
   useProvideAgentFeedbackMutation,
+  usePostFeedbackRequestMutation,
 } from "../store";
 import { useEffect, useState } from "react";
 
@@ -33,6 +33,7 @@ export default function Simulation() {
   const [provideAgentFeedback] = useProvideAgentFeedbackMutation({
     fixedCacheKey: "provideAgentFeedback",
   });
+  const [postFeedbackRequest] = usePostFeedbackRequestMutation();
 
   let message_content;
   if (isFetching) {
@@ -42,8 +43,14 @@ export default function Simulation() {
   } else {
     message_content = (
       <div>
-        {data?.turns.map((message: AgentResponse) => (
-          <ChatMessage key={message.message_id} message={message} />
+        {data?.turns.map((message) => (
+          <ChatMessage
+            key={message.message_id}
+            message={{
+              ...message,
+              role: message.role as "user" | "model",
+            }}
+          />
         ))}
       </div>
     );
@@ -53,6 +60,7 @@ export default function Simulation() {
     <ChatInput
       postRequest={postRequest}
       provideAgentFeedback={provideAgentFeedback}
+      postFeedbackRequest={postFeedbackRequest}
       userId={userId}
       sessionId={sessionId}
     />

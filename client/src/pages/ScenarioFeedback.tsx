@@ -1,11 +1,11 @@
-import { useProvideAgentFeedbackMutation } from "../store";
+import { useProvideOverallFeedbackMutation } from "../store";
 import Markdown from "react-markdown";
 import { useEffect } from "react";
 import "./ScenarioIntroduction.css";
 
 export default function ScenarioFeedback() {
-  const [, results] = useProvideAgentFeedbackMutation({
-    fixedCacheKey: "provideAgentFeedback",
+  const [, results] = useProvideOverallFeedbackMutation({
+    fixedCacheKey: "provideOverallFeedback",
   });
 
   useEffect(() => {

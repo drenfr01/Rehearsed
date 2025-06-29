@@ -1,14 +1,15 @@
 import ChatMessage from "../components/ChatMessage";
 import ChatInput from "../components/ChatInput";
 import SidePanel from "../components/SidePanel";
+import FeedbackPanel from "../components/FeedbackPanel";
 import {
   usePostRequestMutation,
-  useProvideAgentFeedbackMutation,
+  useProvideOverallFeedbackMutation,
   useCreateSessionMutation,
   useGetSessionContentQuery,
+  usePostInlineFeedbackRequestMutation,
 } from "../store";
 import { useEffect, useState } from "react";
-import ReactMarkdown from "react-markdown";
 import { AgentResponse } from "../interfaces/AgentInterface";
 import {
   ConversationResponse,
@@ -177,16 +178,18 @@ export default function AgentSimulation() {
   }, []);
 
   const [postRequest, results] = usePostRequestMutation();
-  const [provideAgentFeedback] = useProvideAgentFeedbackMutation({
-    fixedCacheKey: "provideAgentFeedback",
+  const [provideOverallFeedback] = useProvideOverallFeedbackMutation({
+    fixedCacheKey: "provideOverallFeedback",
   });
+  const [postInlineFeedbackRequest, feedbackResults] =
+    usePostInlineFeedbackRequestMutation();
 
-  // Update feedback when we get a new response
+  // Update feedback when we get a new feedback response
   useEffect(() => {
-    if (results.data?.markdown_text) {
-      setLatestFeedback(results.data.markdown_text);
+    if (feedbackResults.data) {
+      setLatestFeedback(feedbackResults.data.content);
     }
-  }, [results.data]);
+  }, [feedbackResults.data]);
 
   // Add user message to conversation when they send a message
   const handleUserMessage = (message: string) => {
@@ -276,11 +279,12 @@ export default function AgentSimulation() {
   const content = (
     <ChatInput
       postRequest={postRequest}
-      provideAgentFeedback={provideAgentFeedback}
+      provideOverallFeedback={provideOverallFeedback}
+      postInlineFeedbackRequest={postInlineFeedbackRequest}
       userId={userId}
       sessionId={sessionId}
       onUserMessage={handleUserMessage}
-      isLoading={results.isLoading}
+      isLoading={results.isLoading || feedbackResults.isLoading}
     />
   );
 
@@ -331,23 +335,10 @@ export default function AgentSimulation() {
             </div>
 
             {/* Right column - Feedback */}
-            <div className="column is-3 pl-4">
-              <div className="box" style={{ height: "100%" }}>
-                <h3 className="title is-5">Feedback</h3>
-                <div className="content">
-                  {results.isLoading ? (
-                    <div className="has-text-centered">
-                      <div className="button is-loading is-small is-white"></div>
-                      <p className="mt-2">Loading feedback...</p>
-                    </div>
-                  ) : latestFeedback ? (
-                    <ReactMarkdown>{latestFeedback}</ReactMarkdown>
-                  ) : (
-                    <p>No feedback yet</p>
-                  )}
-                </div>
-              </div>
-            </div>
+            <FeedbackPanel
+              isLoading={results.isLoading || feedbackResults.isLoading}
+              latestFeedback={latestFeedback}
+            />
           </div>
         </div>
       </div>

@@ -5,8 +5,11 @@ import { FaMicrophone, FaStop } from "react-icons/fa";
 
 interface ChatInputProps {
   postRequest: ReturnType<typeof agentAPI.endpoints.postRequest.useMutation>[0];
-  provideAgentFeedback: ReturnType<
-    typeof agentAPI.endpoints.provideAgentFeedback.useMutation
+  provideOverallFeedback: ReturnType<
+    typeof agentAPI.endpoints.provideOverallFeedback.useMutation
+  >[0];
+  postInlineFeedbackRequest: ReturnType<
+    typeof agentAPI.endpoints.postInlineFeedbackRequest.useMutation
   >[0];
   userId: string;
   sessionId: string;
@@ -16,7 +19,8 @@ interface ChatInputProps {
 
 export default function ChatInput({
   postRequest,
-  provideAgentFeedback,
+  provideOverallFeedback,
+  postInlineFeedbackRequest,
   userId,
   sessionId,
   onUserMessage,
@@ -79,6 +83,16 @@ export default function ChatInput({
       sessionId: sessionId,
       audio: audioBlob || undefined,
     });
+
+    // Send the same message to the feedback agent
+    postInlineFeedbackRequest({
+      agentName: "inline_feedback_agent",
+      message,
+      userId: userId,
+      sessionId: sessionId,
+      audio: audioBlob || undefined,
+    });
+
     setMessage("");
     setAudioBlob(null);
   };
@@ -87,7 +101,7 @@ export default function ChatInput({
     e: React.MouseEvent<HTMLButtonElement>
   ) => {
     e.preventDefault();
-    provideAgentFeedback({
+    provideOverallFeedback({
       agentName: "overall_feedback_agent",
       message: "Feedback",
       userId: userId,
