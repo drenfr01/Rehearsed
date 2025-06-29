@@ -27,11 +27,18 @@ export default function AgentSimulation() {
   const [createSession] = useCreateSessionMutation();
 
   // Query for session content when sessionId changes
-  const { data: sessionContent, isLoading: isLoadingSessionContent } =
-    useGetSessionContentQuery(
-      { user_id: userId, session_id: sessionId },
-      { skip: !sessionId }
-    );
+  const {
+    data: sessionContent,
+    isLoading: isLoadingSessionContent,
+    refetch,
+  } = useGetSessionContentQuery(
+    { user_id: userId, session_id: sessionId },
+    {
+      skip: !sessionId,
+      // Force refetch when sessionId changes
+      refetchOnMountOrArgChange: true,
+    }
+  );
 
   // Helper function to transform server conversation to AgentResponse format
   const transformServerConversation = (
@@ -125,7 +132,38 @@ export default function AgentSimulation() {
     setSessionId(selectedSessionId);
     localStorage.setItem("sessionId", selectedSessionId);
     setLatestFeedback("");
+
+    // Clear conversation immediately to show loading state
+    setConversation([]);
+
+    // Force refetch to ensure fresh data and proper loading state
+    if (selectedSessionId) {
+      console.log("Calling refetch for session:", selectedSessionId);
+      refetch();
+    }
   };
+
+  // Monitor sessionId changes and ensure proper loading state
+  useEffect(() => {
+    console.log("SessionId changed:", sessionId);
+    if (sessionId && loadingSessionId === sessionId) {
+      console.log("SessionId matches loadingSessionId, ensuring loading state");
+      setIsSwitchingSession(true);
+    }
+  }, [sessionId, loadingSessionId]);
+
+  // Simple timeout to clear switching state
+  useEffect(() => {
+    if (isSwitchingSession) {
+      const timeout = setTimeout(() => {
+        console.log("Clearing switching state after timeout");
+        setIsSwitchingSession(false);
+        setLoadingSessionId("");
+      }, 2000); // 2 second timeout
+
+      return () => clearTimeout(timeout);
+    }
+  }, [isSwitchingSession]);
 
   // Manage switching state based on actual query loading
   useEffect(() => {
@@ -133,34 +171,18 @@ export default function AgentSimulation() {
       isLoadingSessionContent,
       loadingSessionId,
       sessionId,
+      isSwitchingSession,
     });
 
     if (isLoadingSessionContent && loadingSessionId) {
       console.log("Query is loading for session:", loadingSessionId);
       setIsSwitchingSession(true);
-    } else if (!isLoadingSessionContent && loadingSessionId) {
+    } else if (!isLoadingSessionContent && loadingSessionId && sessionContent) {
       console.log("Query finished loading for session:", loadingSessionId);
       setIsSwitchingSession(false);
       setLoadingSessionId("");
     }
-  }, [isLoadingSessionContent, loadingSessionId, sessionId]);
-
-  // Fallback timeout to prevent stuck loading states
-  useEffect(() => {
-    if (loadingSessionId) {
-      const timeout = setTimeout(() => {
-        console.log(
-          "Timeout fallback triggered for session:",
-          loadingSessionId
-        );
-        console.log("Clearing stuck loading state");
-        setIsSwitchingSession(false);
-        setLoadingSessionId("");
-      }, 3000); // 3 second timeout
-
-      return () => clearTimeout(timeout);
-    }
-  }, [loadingSessionId]);
+  }, [isLoadingSessionContent, loadingSessionId, sessionId, sessionContent]);
 
   // Load conversation from server when session content is available
   useEffect(() => {
@@ -174,6 +196,9 @@ export default function AgentSimulation() {
         setConversation(serverConversation);
         // Save to localStorage
         saveConversationToStorage(sessionId, serverConversation);
+        // Clear switching state since we've loaded the conversation
+        setIsSwitchingSession(false);
+        setLoadingSessionId("");
       } else {
         // Check if we have local messages that aren't in the server response
         const localConversation = getConversationFromStorage(sessionId);
@@ -255,7 +280,7 @@ export default function AgentSimulation() {
   }, [results.data, results.isLoading, sessionId]);
 
   let message_content;
-  if (isLoadingSessionContent) {
+  if (isSwitchingSession) {
     message_content = (
       <div className="container">
         <div className="columns is-centered">
