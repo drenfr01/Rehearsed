@@ -12,6 +12,7 @@ from server.routers import (
     conversation_router,
     login_router,
     scenario_router,
+    session_router,
 )
 from server.routers.admin.agents_crud import router as agents_crud_router
 from server.routers.admin.scenarios_crud import router as scenarios_crud_router
@@ -20,6 +21,7 @@ from server.routers.admin.subagent_links_crud import (
 )
 from server.service.agent_service import AgentService
 from server.service.scenario_service import ScenarioService
+from server.service.session_service import SessionService
 
 
 @asynccontextmanager
@@ -30,6 +32,7 @@ async def lifespan(app: FastAPI):
 
     app.state.scenario_service = ScenarioService()
     app.state.agent_service = AgentService(app.state.scenario_service)
+    app.state.session_service = SessionService()
     yield
 
 
@@ -54,6 +57,7 @@ app.include_router(conversation_router.router)
 app.include_router(scenario_router.router)
 app.include_router(agent_router.router)
 app.include_router(login_router.router)
+app.include_router(session_router.router)
 
 # CRUD routers for admin
 app.include_router(scenarios_crud_router)
