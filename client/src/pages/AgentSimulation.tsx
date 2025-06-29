@@ -4,6 +4,7 @@ import SidePanel from "../components/SidePanel";
 import {
   usePostRequestMutation,
   useProvideAgentFeedbackMutation,
+  useCreateSessionMutation,
 } from "../store";
 import { useEffect, useState } from "react";
 import ReactMarkdown from "react-markdown";
@@ -16,11 +17,42 @@ export default function AgentSimulation() {
   const [latestFeedback, setLatestFeedback] = useState<string>("");
   const [conversation, setConversation] = useState<AgentResponse[]>([]);
 
-  const generateNewSessionId = () => {
-    const newSessionId = crypto.randomUUID();
-    localStorage.setItem("sessionId", newSessionId);
-    setSessionId(newSessionId);
-    // Clear conversation when starting a new session
+  const [createSession] = useCreateSessionMutation();
+
+  const generateNewSessionId = async () => {
+    try {
+      console.log("Creating new session for user:", userId);
+      const result = await createSession({ user_id: userId }).unwrap();
+      console.log("Create session result:", result);
+
+      if (result && result.sessions && result.sessions.length > 0) {
+        const newSessionId = result.sessions[0].id;
+        console.log("New session created with ID:", newSessionId);
+        localStorage.setItem("sessionId", newSessionId);
+        setSessionId(newSessionId);
+        // Clear conversation when starting a new session
+        setConversation([]);
+        setLatestFeedback("");
+      } else {
+        console.warn("No session returned from server, using fallback");
+        throw new Error("No session returned");
+      }
+    } catch (error) {
+      console.error("Failed to create new session:", error);
+      // Fallback to local generation if server fails
+      const newSessionId = crypto.randomUUID();
+      console.log("Using fallback session ID:", newSessionId);
+      localStorage.setItem("sessionId", newSessionId);
+      setSessionId(newSessionId);
+      setConversation([]);
+      setLatestFeedback("");
+    }
+  };
+
+  const handleSessionSelect = (selectedSessionId: string) => {
+    setSessionId(selectedSessionId);
+    localStorage.setItem("sessionId", selectedSessionId);
+    // Clear conversation when switching sessions
     setConversation([]);
     setLatestFeedback("");
   };
@@ -128,7 +160,9 @@ export default function AgentSimulation() {
             {/* Side Panel Component */}
             <SidePanel
               sessionId={sessionId}
+              userId={userId}
               onNewSession={generateNewSessionId}
+              onSessionSelect={handleSessionSelect}
             />
 
             {/* Main Chat Column */}

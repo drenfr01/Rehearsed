@@ -15,10 +15,37 @@ class SessionService:
         self.session_service = DatabaseSessionService(db_url=f"sqlite:///{db_url}")
         self.text_to_speech_service = TextToSpeechService()
 
-    async def get_all_sessions_for_user(self, user_id: str) -> list[Session]:
-        return await self.session_service.list_sessions(
+    async def get_all_sessions_for_user(self, user_id: str) -> dict:
+        print(f"Getting all sessions for user: {user_id}")
+        sessions = await self.session_service.list_sessions(
             app_name=self.app_name, user_id=user_id
         )
+        print(f"Raw sessions response: {sessions}")
+        print(
+            f"Number of sessions found: {len(sessions.sessions) if sessions.sessions else 0}"
+        )
+
+        # Sort sessions by lastUpdatedTime in descending order (most recent first)
+        sorted_sessions = sorted(
+            sessions.sessions,
+            key=lambda session: session.last_update_time,
+            reverse=True,
+        )
+        print(f"Sorted sessions: {sorted_sessions}")
+
+        # Transform sessions to match client interface
+        transformed_sessions = []
+        for session in sorted_sessions:
+            transformed_session = {
+                "id": session.id,
+                "userId": session.user_id,
+                "lastUpdateTime": str(session.last_update_time),
+            }
+            transformed_sessions.append(transformed_session)
+
+        result = {"sessions": transformed_sessions}
+        print(f"Returning transformed sessions: {result}")
+        return result
 
     def get_session_service(self) -> DatabaseSessionService:
         return self.session_service
@@ -33,16 +60,22 @@ class SessionService:
         Returns:
             Session: The session
         """
+        print(
+            f"Getting or creating session for user {user_id} and session {session_id}"
+        )
         session = await self.session_service.get_session(
             app_name=self.app_name, user_id=user_id, session_id=session_id
         )
         if session is None:
-            print(f"Creating session for user {user_id} and session {session_id}")
+            print(f"Creating new session for user {user_id} and session {session_id}")
             session = await self.session_service.create_session(
                 app_name=self.app_name,
                 user_id=user_id,
                 session_id=session_id,
             )
+            print(f"Session created successfully: {session.id}")
+        else:
+            print(f"Retrieved existing session: {session.id}")
         return session
 
     async def get_session_content(

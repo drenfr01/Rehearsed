@@ -53,7 +53,15 @@ const sessionAPI = createApi({
         GetAllSessionsForUserRequest
       >({
         providesTags: [{ type: "Session", id: "LIST" }],
+        transformResponse: (response: SessionResponse) => {
+          console.log("SessionAPI - transformResponse:", response);
+          return response;
+        },
         query: (getAllSessionsForUserRequest: GetAllSessionsForUserRequest) => {
+          console.log(
+            "SessionAPI - query params:",
+            getAllSessionsForUserRequest
+          );
           return {
             url: "/get-all-sessions-for-user",
             method: "GET",

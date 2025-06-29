@@ -13,9 +13,8 @@ export interface GetSessionRequest {
 
 export interface Session {
   id: string;
-  user_id: string;
-  created_at: string;
-  updated_at: string;
+  userId: string;
+  lastUpdateTime: string;
   // Add other session properties as needed
 }
 
