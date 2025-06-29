@@ -1,5 +1,6 @@
 import ChatMessage from "../components/ChatMessage";
 import ChatInput from "../components/ChatInput";
+import SidePanel from "../components/SidePanel";
 import {
   usePostRequestMutation,
   useProvideAgentFeedbackMutation,
@@ -121,21 +122,17 @@ export default function AgentSimulation() {
 
   return (
     <section className="hero is-fullheight">
-      <div className="hero-head has-text-centered">
-        <div className="container">
-          <button
-            className="button is-primary is-small mt-2"
-            onClick={generateNewSessionId}
-          >
-            New Session
-          </button>
-        </div>
-      </div>
-      <div className="hero-body">
-        <div className="container">
-          <div className="columns">
-            {/* Left column - Chat */}
-            <div className="column is-8 pr-4 has-background-white">
+      <div className="hero-body" style={{ padding: 0 }}>
+        <div className="container" style={{ height: "100%", padding: 0 }}>
+          <div className="columns" style={{ height: "100%", margin: 0 }}>
+            {/* Side Panel Component */}
+            <SidePanel
+              sessionId={sessionId}
+              onNewSession={generateNewSessionId}
+            />
+
+            {/* Main Chat Column */}
+            <div className="column is-7 pr-4 has-background-white">
               <div
                 className="box"
                 style={{
@@ -165,8 +162,9 @@ export default function AgentSimulation() {
                 <div>{content}</div>
               </div>
             </div>
+
             {/* Right column - Feedback */}
-            <div className="column is-4 pl-4">
+            <div className="column is-3 pl-4">
               <div className="box" style={{ height: "100%" }}>
                 <h3 className="title is-5">Feedback</h3>
                 <div className="content">
@@ -190,10 +188,10 @@ export default function AgentSimulation() {
         <footer className="section is-small">
           <div className="container">
             <div className="columns">
-              <div className="column is-8">
+              <div className="column is-10">
                 {/* Empty column to align with the chat panel */}
               </div>
-              <div className="column is-4">
+              <div className="column is-3">
                 {/* Empty column to align with the feedback panel */}
               </div>
             </div>

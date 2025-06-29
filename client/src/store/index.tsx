@@ -5,6 +5,7 @@ import { agentAPI } from "./apis/agentAPI";
 import { authAPI } from "./apis/authAPI";
 import { agentsCrudAPI } from "./apis/agentsCrudAPI";
 import { scenariosCrudAPI } from "./apis/scenariosCrudAPI";
+import { sessionAPI } from "./apis/sessionAPI";
 import { setupListeners } from "@reduxjs/toolkit/query";
 
 const store = configureStore({
@@ -15,6 +16,7 @@ const store = configureStore({
     [authAPI.reducerPath]: authAPI.reducer,
     [agentsCrudAPI.reducerPath]: agentsCrudAPI.reducer,
     [scenariosCrudAPI.reducerPath]: scenariosCrudAPI.reducer,
+    [sessionAPI.reducerPath]: sessionAPI.reducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware()
@@ -23,7 +25,8 @@ const store = configureStore({
       .concat(agentAPI.middleware)
       .concat(authAPI.middleware)
       .concat(agentsCrudAPI.middleware)
-      .concat(scenariosCrudAPI.middleware),
+      .concat(scenariosCrudAPI.middleware)
+      .concat(sessionAPI.middleware),
 });
 
 // window.store = store;
@@ -62,3 +65,10 @@ export {
   useUpdateAgentMutation,
   useDeleteAgentMutation,
 } from "./apis/agentsCrudAPI";
+
+export {
+  useCreateSessionMutation,
+  useGetCurrentSessionQuery,
+  useGetSessionContentQuery,
+  useGetAllSessionsForUserQuery,
+} from "./apis/sessionAPI";

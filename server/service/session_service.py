@@ -15,6 +15,11 @@ class SessionService:
         self.session_service = DatabaseSessionService(db_url=f"sqlite:///{db_url}")
         self.text_to_speech_service = TextToSpeechService()
 
+    async def get_all_sessions_for_user(self, user_id: str) -> list[Session]:
+        return await self.session_service.list_sessions(
+            app_name=self.app_name, user_id=user_id
+        )
+
     def get_session_service(self) -> DatabaseSessionService:
         return self.session_service
 
