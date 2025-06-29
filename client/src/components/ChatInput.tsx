@@ -88,7 +88,7 @@ export default function ChatInput({
   ) => {
     e.preventDefault();
     provideAgentFeedback({
-      agentName: "feedback_agent",
+      agentName: "overall_feedback_agent",
       message: "Feedback",
       userId: userId,
       sessionId: sessionId,

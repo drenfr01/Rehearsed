@@ -111,7 +111,7 @@ class AgentRequestService:
             if event.is_final_response():
                 in_memory_agent = self.agent_service.lookup_agent(event.author)
                 # For the feedback agent, we want to store the text separately
-                if in_memory_agent.agent_pydantic.name == "feedback_agent":
+                if in_memory_agent.agent_pydantic.name == "inline_feedback_agent":
                     text_str = event.content.parts[0].text
                 else:
                     event_author = event.author

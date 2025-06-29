@@ -18,7 +18,7 @@ PATH_TO_TOOLS = "server.tools"
 
 class AgentService:
     def __init__(self, scenario_service: ScenarioService):
-        self.app_name = os.getenv("APP_NAME", "Time to Teach")
+        self.app_name = os.getenv("APP_NAME", "Rehearsed")
         self.runner = None
         self.live_events = None
         self.live_request_queue = None

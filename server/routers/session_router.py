@@ -1,11 +1,13 @@
-from fastapi import APIRouter, Query, Request
+import uuid
 from typing import Annotated
+
+from fastapi import APIRouter, Query, Request
+
 from server.models.session_interface import (
     CreateSessionRequest,
     GetAllSessionsForUserRequest,
     GetSessionRequest,
 )
-import uuid
 
 router = APIRouter(
     prefix="/session",

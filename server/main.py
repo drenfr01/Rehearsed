@@ -67,4 +67,4 @@ app.include_router(subagent_links_crud_router)
 
 @app.get("/")
 async def read_root():
-    return {"message": "Welcome to the time to teach app!"}
+    return {"message": "Welcome to the Rehearsed app!"}
