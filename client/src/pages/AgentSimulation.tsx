@@ -19,6 +19,41 @@ export default function AgentSimulation() {
 
   const [createSession] = useCreateSessionMutation();
 
+  // Helper function to get conversation from localStorage
+  const getConversationFromStorage = (sessionId: string): AgentResponse[] => {
+    try {
+      const stored = localStorage.getItem(`conversation_${sessionId}`);
+      return stored ? JSON.parse(stored) : [];
+    } catch (error) {
+      console.error("Error loading conversation from storage:", error);
+      return [];
+    }
+  };
+
+  // Helper function to save conversation to localStorage
+  const saveConversationToStorage = (
+    sessionId: string,
+    conversation: AgentResponse[]
+  ) => {
+    try {
+      localStorage.setItem(
+        `conversation_${sessionId}`,
+        JSON.stringify(conversation)
+      );
+    } catch (error) {
+      console.error("Error saving conversation to storage:", error);
+    }
+  };
+
+  // Helper function to clear conversation from localStorage
+  const clearConversationFromStorage = (sessionId: string) => {
+    try {
+      localStorage.removeItem(`conversation_${sessionId}`);
+    } catch (error) {
+      console.error("Error clearing conversation from storage:", error);
+    }
+  };
+
   const generateNewSessionId = async () => {
     try {
       console.log("Creating new session for user:", userId);
@@ -33,6 +68,8 @@ export default function AgentSimulation() {
         // Clear conversation when starting a new session
         setConversation([]);
         setLatestFeedback("");
+        // Clear any existing conversation for this session
+        clearConversationFromStorage(newSessionId);
       } else {
         console.warn("No session returned from server, using fallback");
         throw new Error("No session returned");
@@ -46,14 +83,17 @@ export default function AgentSimulation() {
       setSessionId(newSessionId);
       setConversation([]);
       setLatestFeedback("");
+      // Clear any existing conversation for this session
+      clearConversationFromStorage(newSessionId);
     }
   };
 
   const handleSessionSelect = (selectedSessionId: string) => {
     setSessionId(selectedSessionId);
     localStorage.setItem("sessionId", selectedSessionId);
-    // Clear conversation when switching sessions
-    setConversation([]);
+    // Load conversation for the selected session
+    const sessionConversation = getConversationFromStorage(selectedSessionId);
+    setConversation(sessionConversation);
     setLatestFeedback("");
   };
 
@@ -64,6 +104,9 @@ export default function AgentSimulation() {
       generateNewSessionId();
     } else {
       setSessionId(storedSessionId);
+      // Load conversation for the stored session
+      const sessionConversation = getConversationFromStorage(storedSessionId);
+      setConversation(sessionConversation);
     }
   }, []);
 
@@ -87,7 +130,10 @@ export default function AgentSimulation() {
       author: "You",
       message_id: crypto.randomUUID(),
     };
-    setConversation((prev) => [...prev, userMessage]);
+    const updatedConversation = [...conversation, userMessage];
+    setConversation(updatedConversation);
+    // Save to localStorage
+    saveConversationToStorage(sessionId, updatedConversation);
   };
 
   // Add agent response to conversation when received
@@ -101,7 +147,10 @@ export default function AgentSimulation() {
         audio: results.data.audio,
         markdown_text: results.data.markdown_text,
       };
-      setConversation((prev) => [...prev, agentResponse]);
+      const updatedConversation = [...conversation, agentResponse];
+      setConversation(updatedConversation);
+      // Save to localStorage
+      saveConversationToStorage(sessionId, updatedConversation);
     }
   }, [results.data, results.isLoading]);
 
