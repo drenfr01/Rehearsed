@@ -114,7 +114,7 @@ class AgentRequestService:
                 if in_memory_agent.agent_pydantic.name == "feedback_agent":
                     text_str = event.content.parts[0].text
                 else:
-                    return_event_author = event.author
+                    event_author = event.author
                     if event.content and event.content.parts:
                         # Assuming text response in the first part
                         final_response_text = event.content.parts[0].text
@@ -133,5 +133,5 @@ class AgentRequestService:
         return AgentResponse(
             agent_response_text=final_response_text,
             markdown_text=text_str,
-            author=return_event_author,
+            author=event_author,
         )

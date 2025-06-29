@@ -109,6 +109,7 @@ const agentAPI = createApi({
             url: "/feedback",
             method: "POST",
             body: {
+              agent_name: agentRequest.agentName,
               user_id: agentRequest.userId,
               session_id: agentRequest.sessionId,
               message: agentRequest.message,
