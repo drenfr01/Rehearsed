@@ -21,24 +21,19 @@ export default function AgentSimulation() {
   const [sessionId, setSessionId] = useState<string>("");
   const [latestFeedback, setLatestFeedback] = useState<string>("");
   const [conversation, setConversation] = useState<AgentResponse[]>([]);
-  const [isSwitchingSession, setIsSwitchingSession] = useState<boolean>(false);
-  const [loadingSessionId, setLoadingSessionId] = useState<string>("");
+  const [isLoading, setIsLoading] = useState<boolean>(false);
 
   const [createSession] = useCreateSessionMutation();
 
   // Query for session content when sessionId changes
-  const {
-    data: sessionContent,
-    isLoading: isLoadingSessionContent,
-    refetch,
-  } = useGetSessionContentQuery(
-    { user_id: userId, session_id: sessionId },
-    {
-      skip: !sessionId,
-      // Force refetch when sessionId changes
-      refetchOnMountOrArgChange: true,
-    }
-  );
+  const { data: sessionContent, isLoading: isLoadingSessionContent } =
+    useGetSessionContentQuery(
+      { user_id: userId, session_id: sessionId },
+      {
+        skip: !sessionId,
+        refetchOnMountOrArgChange: true,
+      }
+    );
 
   // Helper function to transform server conversation to AgentResponse format
   const transformServerConversation = (
@@ -94,6 +89,12 @@ export default function AgentSimulation() {
   const generateNewSessionId = async () => {
     try {
       console.log("Creating new session for user:", userId);
+
+      // Set switching state and clear conversation immediately
+      setIsLoading(true);
+      setConversation([]);
+      setLatestFeedback("");
+
       const result = await createSession({ user_id: userId }).unwrap();
       console.log("Create session result:", result);
 
@@ -102,11 +103,10 @@ export default function AgentSimulation() {
         console.log("New session created with ID:", newSessionId);
         localStorage.setItem("sessionId", newSessionId);
         setSessionId(newSessionId);
-        // Clear conversation when starting a new session
-        setConversation([]);
-        setLatestFeedback("");
         // Clear any existing conversation for this session
         clearConversationFromStorage(newSessionId);
+        // Clear switching state since we've created the new session
+        setIsLoading(false);
       } else {
         console.warn("No session returned from server, using fallback");
         throw new Error("No session returned");
@@ -118,71 +118,35 @@ export default function AgentSimulation() {
       console.log("Using fallback session ID:", newSessionId);
       localStorage.setItem("sessionId", newSessionId);
       setSessionId(newSessionId);
-      setConversation([]);
-      setLatestFeedback("");
       // Clear any existing conversation for this session
       clearConversationFromStorage(newSessionId);
+      // Clear switching state since we've created the new session
+      setIsLoading(false);
     }
   };
 
   const handleSessionSelect = async (selectedSessionId: string) => {
     console.log("Session selection started:", selectedSessionId);
-    setIsSwitchingSession(true);
-    setLoadingSessionId(selectedSessionId);
+    setIsLoading(true);
     setSessionId(selectedSessionId);
     localStorage.setItem("sessionId", selectedSessionId);
     setLatestFeedback("");
 
     // Clear conversation immediately to show loading state
     setConversation([]);
-
-    // Force refetch to ensure fresh data and proper loading state
-    if (selectedSessionId) {
-      console.log("Calling refetch for session:", selectedSessionId);
-      refetch();
-    }
   };
 
-  // Monitor sessionId changes and ensure proper loading state
+  // Simple timeout to clear loading state if stuck
   useEffect(() => {
-    console.log("SessionId changed:", sessionId);
-    if (sessionId && loadingSessionId === sessionId) {
-      console.log("SessionId matches loadingSessionId, ensuring loading state");
-      setIsSwitchingSession(true);
-    }
-  }, [sessionId, loadingSessionId]);
-
-  // Simple timeout to clear switching state
-  useEffect(() => {
-    if (isSwitchingSession) {
+    if (isLoading) {
       const timeout = setTimeout(() => {
-        console.log("Clearing switching state after timeout");
-        setIsSwitchingSession(false);
-        setLoadingSessionId("");
-      }, 2000); // 2 second timeout
+        console.log("Clearing stuck loading state");
+        setIsLoading(false);
+      }, 5000); // 5 second timeout
 
       return () => clearTimeout(timeout);
     }
-  }, [isSwitchingSession]);
-
-  // Manage switching state based on actual query loading
-  useEffect(() => {
-    console.log("Session content loading state changed:", {
-      isLoadingSessionContent,
-      loadingSessionId,
-      sessionId,
-      isSwitchingSession,
-    });
-
-    if (isLoadingSessionContent && loadingSessionId) {
-      console.log("Query is loading for session:", loadingSessionId);
-      setIsSwitchingSession(true);
-    } else if (!isLoadingSessionContent && loadingSessionId && sessionContent) {
-      console.log("Query finished loading for session:", loadingSessionId);
-      setIsSwitchingSession(false);
-      setLoadingSessionId("");
-    }
-  }, [isLoadingSessionContent, loadingSessionId, sessionId, sessionContent]);
+  }, [isLoading]);
 
   // Load conversation from server when session content is available
   useEffect(() => {
@@ -190,35 +154,14 @@ export default function AgentSimulation() {
       console.log("Loading conversation from server:", sessionContent);
       const serverConversation = transformServerConversation(sessionContent);
 
-      // When switching sessions, always use server data
-      if (isSwitchingSession) {
-        console.log("Switching sessions - using server conversation");
-        setConversation(serverConversation);
-        // Save to localStorage
-        saveConversationToStorage(sessionId, serverConversation);
-        // Clear switching state since we've loaded the conversation
-        setIsSwitchingSession(false);
-        setLoadingSessionId("");
-      } else {
-        // Check if we have local messages that aren't in the server response
-        const localConversation = getConversationFromStorage(sessionId);
-        const hasLocalMessages =
-          localConversation.length > serverConversation.length;
+      // Always use server data when available
+      setConversation(serverConversation);
+      saveConversationToStorage(sessionId, serverConversation);
 
-        if (hasLocalMessages) {
-          // Keep local conversation if it has more messages (preserves additional messages)
-          console.log("Keeping local conversation with additional messages");
-          setConversation(localConversation);
-        } else {
-          // Use server conversation if it's more complete
-          console.log("Using server conversation");
-          setConversation(serverConversation);
-          // Save to localStorage
-          saveConversationToStorage(sessionId, serverConversation);
-        }
-      }
+      // Clear loading state
+      setIsLoading(false);
     }
-  }, [sessionContent, isLoadingSessionContent, sessionId, isSwitchingSession]);
+  }, [sessionContent, isLoadingSessionContent, sessionId]);
 
   useEffect(() => {
     // Generate a new session ID if one doesn't exist in localStorage
@@ -280,7 +223,7 @@ export default function AgentSimulation() {
   }, [results.data, results.isLoading, sessionId]);
 
   let message_content;
-  if (isSwitchingSession) {
+  if (isLoading) {
     message_content = (
       <div className="container">
         <div className="columns is-centered">
@@ -353,8 +296,7 @@ export default function AgentSimulation() {
               userId={userId}
               onNewSession={generateNewSessionId}
               onSessionSelect={handleSessionSelect}
-              isSwitchingSession={isSwitchingSession}
-              loadingSessionId={loadingSessionId}
+              isLoading={isLoading}
             />
 
             {/* Main Chat Column */}
