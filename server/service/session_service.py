@@ -10,7 +10,7 @@ from server.service.text_to_speech_service import TextToSpeechService
 
 class SessionService:
     def __init__(self):
-        self.app_name = os.getenv("APP_NAME", "Time to Teach")
+        self.app_name = os.getenv("APP_NAME", "Rehearsed")
         db_url = os.getenv("DB_PATH")
         self.session_service = DatabaseSessionService(db_url=f"sqlite:///{db_url}")
         self.text_to_speech_service = TextToSpeechService()

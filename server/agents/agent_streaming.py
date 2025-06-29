@@ -35,7 +35,7 @@ def load_student_agents(
 
 # TODO: make this a deterministically run agent with appropriate session
 def load_feedback_agent(
-    file_path: str = "server/orm/feedback_agent.yaml",
+    file_path: str = "server/orm/overall_feedback_agent.yaml",
 ) -> list[Agent]:
     print(f"Loading feedback agent from {file_path}")
     with open(file_path, "r") as f:

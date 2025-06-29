@@ -55,7 +55,7 @@ export default function ScenarioFeedback() {
             <label className="label">Feedback</label>
             <div className="control">
               <div className="content">
-                <Markdown>{results.data.markdown_text}</Markdown>
+                <Markdown>{results.data.agent_response_text}</Markdown>
               </div>
             </div>
           </div>

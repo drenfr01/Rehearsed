@@ -27,7 +27,7 @@ export default function ScenarioIntroduction() {
         <div className="container is-fluid">
           <div className="box">
             <div className="field">
-              <label className="label">Scenario Overview</label>
+              <label className="label">Scenario Introduction</label>
               <div className="control">
                 <textarea
                   className="textarea is-normal has-fixed-size hide-scrollbar"

@@ -256,7 +256,6 @@ export default function AgentSimulation() {
               className="box has-text-centered"
               style={{ marginTop: "2rem" }}
             >
-              <h2 className="title is-4 mb-4">Welcome to Time to Teach!</h2>
               <p className="subtitle is-6">
                 Start your conversation with the students to begin your teaching
                 journey.

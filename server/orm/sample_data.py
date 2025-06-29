@@ -132,12 +132,17 @@ def initialize_sample_agent_data():
         initialize_scenario_data(session)
         load_agents("server/orm/student_agents.yaml", session=session)
         load_agents(
-            "server/orm/feedback_agent.yaml",
+            "server/orm/inline_feedback_agent.yaml",
             model=FLASH_MODEL,
             session=session,
         )
         load_agents(
             "server/orm/root_agent.yaml",
+            model=FLASH_MODEL,
+            session=session,
+        )
+        load_agents(
+            "server/orm/overall_feedback_agent.yaml",
             model=FLASH_MODEL,
             session=session,
         )
