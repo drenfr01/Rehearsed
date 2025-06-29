@@ -82,8 +82,18 @@ class SessionService:
         self,
         user_id: str,
         session_id: str,
+        include_audio: bool = True,
     ) -> Conversation:
-        """Gets the session for a given user and session id. Session is always initialized"""
+        """Gets the session for a given user and session id. Session is always initialized
+
+        Args:
+            user_id (str): The user ID
+            session_id (str): The session ID
+            include_audio (bool): Whether to include audio in the conversation
+
+        Returns:
+            Conversation: The conversation
+        """
         print(f"Getting session content for user {user_id} and session {session_id}")
         saved_session = await self.get_or_create_session(user_id, session_id)
         conversation = Conversation(turns=[])
@@ -99,7 +109,7 @@ class SessionService:
                 # Generate audio for system responses
                 audio_content = None
                 # TODO: make an enum with "user" and "model" here
-                if event.content.role == "model":
+                if event.content.role == "model" and include_audio:
                     print(
                         f"Generating audio for system message: {event.content.parts[0].text[:100]}..."
                     )

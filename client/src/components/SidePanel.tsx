@@ -6,6 +6,7 @@ interface SidePanelProps {
   userId: string;
   onNewSession: () => void;
   onSessionSelect?: (sessionId: string) => void;
+  isSwitchingSession?: boolean;
 }
 
 export default function SidePanel({
@@ -13,6 +14,7 @@ export default function SidePanel({
   userId,
   onNewSession,
   onSessionSelect,
+  isSwitchingSession = false,
 }: SidePanelProps) {
   const [isOpen, setIsOpen] = React.useState<boolean>(true);
 
@@ -34,6 +36,9 @@ export default function SidePanel({
   }, [userId, sessionsData, isLoading, error]);
 
   const handleSessionClick = (sessionId: string) => {
+    if (isSwitchingSession) {
+      return; // Prevent clicking while switching
+    }
     if (onSessionSelect) {
       onSessionSelect(sessionId);
     }
@@ -127,15 +132,28 @@ export default function SidePanel({
                         padding: "0.5rem",
                         marginBottom: "0.25rem",
                         borderRadius: "4px",
-                        cursor: "pointer",
+                        cursor: isSwitchingSession ? "not-allowed" : "pointer",
                         fontSize: "0.75rem",
                         backgroundColor:
                           session.id === sessionId ? "#3273dc" : "transparent",
                         color: session.id === sessionId ? "white" : "inherit",
+                        opacity: isSwitchingSession ? 0.6 : 1,
+                        pointerEvents: isSwitchingSession ? "none" : "auto",
                       }}
                     >
-                      <div>
+                      <div
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "space-between",
+                        }}
+                      >
                         <strong>Session {session.id.slice(0, 8)}...</strong>
+                        {isSwitchingSession && session.id === sessionId && (
+                          <span className="icon is-small">
+                            <i className="fas fa-spinner fa-spin"></i>
+                          </span>
+                        )}
                       </div>
                       <div style={{ fontSize: "0.65rem", opacity: 0.7 }}>
                         {new Date(

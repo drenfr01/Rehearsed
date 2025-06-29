@@ -5,10 +5,15 @@ import {
   usePostRequestMutation,
   useProvideAgentFeedbackMutation,
   useCreateSessionMutation,
+  useGetSessionContentQuery,
 } from "../store";
 import { useEffect, useState } from "react";
 import ReactMarkdown from "react-markdown";
 import { AgentResponse } from "../interfaces/AgentInterface";
+import {
+  ConversationResponse,
+  ConversationTurn,
+} from "../interfaces/SessionInterface";
 
 export default function AgentSimulation() {
   // TODO: these will be set by user login
@@ -16,8 +21,32 @@ export default function AgentSimulation() {
   const [sessionId, setSessionId] = useState<string>("");
   const [latestFeedback, setLatestFeedback] = useState<string>("");
   const [conversation, setConversation] = useState<AgentResponse[]>([]);
+  const [isSwitchingSession, setIsSwitchingSession] = useState<boolean>(false);
 
   const [createSession] = useCreateSessionMutation();
+
+  // Query for session content when sessionId changes
+  const { data: sessionContent, isLoading: isLoadingSessionContent } =
+    useGetSessionContentQuery(
+      { user_id: userId, session_id: sessionId },
+      { skip: !sessionId }
+    );
+
+  // Helper function to transform server conversation to AgentResponse format
+  const transformServerConversation = (
+    serverConversation: ConversationResponse
+  ): AgentResponse[] => {
+    if (!serverConversation?.turns) return [];
+
+    return serverConversation.turns.map((turn: ConversationTurn) => ({
+      content: turn.content,
+      role: turn.role as "user" | "model",
+      author: turn.author,
+      message_id: turn.message_id,
+      audio: turn.audio,
+      markdown_text: undefined, // Server doesn't provide markdown_text for historical messages
+    }));
+  };
 
   // Helper function to get conversation from localStorage
   const getConversationFromStorage = (sessionId: string): AgentResponse[] => {
@@ -88,14 +117,26 @@ export default function AgentSimulation() {
     }
   };
 
-  const handleSessionSelect = (selectedSessionId: string) => {
+  const handleSessionSelect = async (selectedSessionId: string) => {
+    setIsSwitchingSession(true);
     setSessionId(selectedSessionId);
     localStorage.setItem("sessionId", selectedSessionId);
-    // Load conversation for the selected session
-    const sessionConversation = getConversationFromStorage(selectedSessionId);
-    setConversation(sessionConversation);
     setLatestFeedback("");
+    // Add a small delay to show the loading state
+    await new Promise((resolve) => setTimeout(resolve, 100));
+    setIsSwitchingSession(false);
   };
+
+  // Load conversation from server when session content is available
+  useEffect(() => {
+    if (sessionContent && !isLoadingSessionContent) {
+      console.log("Loading conversation from server:", sessionContent);
+      const serverConversation = transformServerConversation(sessionContent);
+      setConversation(serverConversation);
+      // Save to localStorage
+      saveConversationToStorage(sessionId, serverConversation);
+    }
+  }, [sessionContent, isLoadingSessionContent, sessionId]);
 
   useEffect(() => {
     // Generate a new session ID if one doesn't exist in localStorage
@@ -104,7 +145,7 @@ export default function AgentSimulation() {
       generateNewSessionId();
     } else {
       setSessionId(storedSessionId);
-      // Load conversation for the stored session
+      // Load conversation for the stored session from localStorage as fallback
       const sessionConversation = getConversationFromStorage(storedSessionId);
       setConversation(sessionConversation);
     }
@@ -155,7 +196,23 @@ export default function AgentSimulation() {
   }, [results.data, results.isLoading]);
 
   let message_content;
-  if (conversation.length > 0) {
+  if (isLoadingSessionContent) {
+    message_content = (
+      <div className="container">
+        <div className="columns is-centered">
+          <div className="column is-half">
+            <div
+              className="box has-text-centered"
+              style={{ marginTop: "2rem" }}
+            >
+              <div className="button is-loading is-large is-white"></div>
+              <p className="mt-4">Loading conversation...</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  } else if (conversation.length > 0) {
     message_content = (
       <div>
         {conversation.map((response: AgentResponse) => (
@@ -212,6 +269,7 @@ export default function AgentSimulation() {
               userId={userId}
               onNewSession={generateNewSessionId}
               onSessionSelect={handleSessionSelect}
+              isSwitchingSession={isSwitchingSession}
             />
 
             {/* Main Chat Column */}

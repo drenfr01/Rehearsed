@@ -4,6 +4,7 @@ import {
   GetAllSessionsForUserRequest,
   GetSessionRequest,
   SessionResponse,
+  ConversationResponse,
 } from "../../interfaces/SessionInterface";
 
 const host = import.meta.env.VITE_SERVER_HOST;
@@ -36,18 +37,20 @@ const sessionAPI = createApi({
           };
         },
       }),
-      getSessionContent: builder.query<SessionResponse, GetSessionRequest>({
-        providesTags: (result, error, arg) => [
-          { type: "Session", id: arg.session_id },
-        ],
-        query: (getSessionRequest: GetSessionRequest) => {
-          return {
-            url: "/get-session-content",
-            method: "GET",
-            params: getSessionRequest,
-          };
-        },
-      }),
+      getSessionContent: builder.query<ConversationResponse, GetSessionRequest>(
+        {
+          providesTags: (result, error, arg) => [
+            { type: "Session", id: arg.session_id },
+          ],
+          query: (getSessionRequest: GetSessionRequest) => {
+            return {
+              url: "/get-session-content",
+              method: "GET",
+              params: getSessionRequest,
+            };
+          },
+        }
+      ),
       getAllSessionsForUser: builder.query<
         SessionResponse,
         GetAllSessionsForUserRequest

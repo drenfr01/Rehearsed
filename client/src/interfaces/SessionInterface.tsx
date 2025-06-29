@@ -21,3 +21,15 @@ export interface Session {
 export interface SessionResponse {
   sessions: Session[];
 }
+
+export interface ConversationTurn {
+  content: string;
+  role: string;
+  author: string;
+  message_id: string;
+  audio?: string;
+}
+
+export interface ConversationResponse {
+  turns: ConversationTurn[];
+}

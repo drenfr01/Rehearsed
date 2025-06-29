@@ -35,7 +35,9 @@ async def create_session(
 
 
 @router.get("/get-current-session")
-async def get_current_session(request: Request, get_session_request: GetSessionRequest):
+async def get_current_session(
+    request: Request, get_session_request: Annotated[GetSessionRequest, Query()]
+):
     return request.app.state.session_service.get_or_create_session(
         user_id=get_session_request.user_id,
         session_id=get_session_request.session_id,
@@ -43,8 +45,10 @@ async def get_current_session(request: Request, get_session_request: GetSessionR
 
 
 @router.get("/get-session-content")
-async def get_session_content(request: Request, get_session_request: GetSessionRequest):
-    return request.app.state.session_service.get_session_content(
+async def get_session_content(
+    request: Request, get_session_request: Annotated[GetSessionRequest, Query()]
+):
+    return await request.app.state.session_service.get_session_content(
         user_id=get_session_request.user_id,
         session_id=get_session_request.session_id,
     )
