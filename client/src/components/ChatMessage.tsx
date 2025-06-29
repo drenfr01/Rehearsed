@@ -1,7 +1,7 @@
 import ReactMarkdown from "react-markdown";
 import { FaRobot, FaUser, FaPlay, FaStop } from "react-icons/fa";
 import { AgentResponse } from "../interfaces/AgentInterface";
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 
 export default function ChatMessage({ message }: { message: AgentResponse }) {
   const isUser = message.role === "user";
@@ -9,13 +9,37 @@ export default function ChatMessage({ message }: { message: AgentResponse }) {
   const [isPlaying, setIsPlaying] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
+  // Cleanup effect: only revoke URL if the message changes or component unmounts
+  useEffect(() => {
+    return () => {
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current = null;
+      }
+      if (audioUrl) {
+        URL.revokeObjectURL(audioUrl);
+      }
+      setIsPlaying(false);
+    };
+    // Only depend on message.message_id so it runs when the message changes or unmounts
+  }, [message.message_id]);
+
   const playAudio = () => {
+    if (isPlaying && audioRef.current) {
+      audioRef.current.pause();
+      setIsPlaying(false);
+      return;
+    }
+
+    if (audioUrl && audioRef.current) {
+      audioRef.current.currentTime = 0;
+      audioRef.current.play().then(() => setIsPlaying(true));
+      return;
+    }
+
     if (message.audio && !audioUrl) {
       try {
-        // Clean the base64 string by removing any whitespace and ensuring it's properly padded
         const base64Data = message.audio.replace(/\s/g, "");
-
-        // Create a blob from the base64 data
         const byteCharacters = atob(base64Data);
         const byteNumbers = new Array(byteCharacters.length);
         for (let i = 0; i < byteCharacters.length; i++) {
@@ -23,47 +47,32 @@ export default function ChatMessage({ message }: { message: AgentResponse }) {
         }
         const byteArray = new Uint8Array(byteNumbers);
         const blob = new Blob([byteArray], { type: "audio/mp3" });
-
-        // Create an object URL from the blob
         const url = URL.createObjectURL(blob);
         setAudioUrl(url);
 
-        // Play the audio
+        if (audioRef.current) {
+          audioRef.current.pause();
+          audioRef.current = null;
+        }
+
         const audio = new Audio(url);
         audioRef.current = audio;
         audio.onended = () => {
+          setIsPlaying(false);
           URL.revokeObjectURL(url);
           setAudioUrl(null);
-          setIsPlaying(false);
         };
-        audio.play();
-        setIsPlaying(true);
+        audio.onerror = () => {
+          setIsPlaying(false);
+          URL.revokeObjectURL(url);
+          setAudioUrl(null);
+        };
+        audio.play().then(() => setIsPlaying(true));
       } catch (error) {
         console.error("Error playing audio:", error);
-        console.log("Audio data:", message.audio);
-      }
-    } else if (audioUrl) {
-      if (isPlaying) {
-        // Stop the audio
-        audioRef.current?.pause();
-        audioRef.current = null;
-        setIsPlaying(false);
-      } else {
-        // Play the audio
-        const audio = new Audio(audioUrl);
-        audioRef.current = audio;
-        audio.onended = () => {
-          URL.revokeObjectURL(audioUrl);
-          setAudioUrl(null);
-          setIsPlaying(false);
-        };
-        audio.play();
-        setIsPlaying(true);
       }
     }
   };
-
-  console.log("Message audio available:", !!message.audio);
 
   return (
     <div className="container is-fluid mb-4">

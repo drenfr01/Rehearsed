@@ -10,6 +10,8 @@ interface ChatInputProps {
   >[0];
   userId: string;
   sessionId: string;
+  onUserMessage?: (message: string) => void;
+  isLoading?: boolean;
 }
 
 export default function ChatInput({
@@ -17,6 +19,8 @@ export default function ChatInput({
   provideAgentFeedback,
   userId,
   sessionId,
+  onUserMessage,
+  isLoading = false,
 }: ChatInputProps) {
   const [message, setMessage] = useState("");
   const [isRecording, setIsRecording] = useState(false);
@@ -63,6 +67,10 @@ export default function ChatInput({
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    // Call onUserMessage callback if provided
+    if (onUserMessage) {
+      onUserMessage(message);
+    }
     // TODO: make this dynamic based on the scenario
     postRequest({
       agentName: "root_agent",
@@ -80,6 +88,7 @@ export default function ChatInput({
   ) => {
     e.preventDefault();
     provideAgentFeedback({
+      agentName: "root_agent",
       message: "Feedback",
       userId: userId,
       sessionId: sessionId,
@@ -95,12 +104,13 @@ export default function ChatInput({
       >
         <div className="control is-expanded">
           <input
-            className="input"
+            className={`input ${isLoading ? "is-static" : ""}`}
             type="text"
             name="message"
             value={message}
             onChange={(e) => setMessage(e.target.value)}
             placeholder="Type your message..."
+            disabled={isLoading}
           />
         </div>
         <div className="control">
@@ -116,7 +126,13 @@ export default function ChatInput({
           </button>
         </div>
         <div className="control">
-          <button className="button is-primary mx-2" type="submit">
+          <button
+            className={`button is-primary mx-2 ${
+              isLoading ? "is-loading" : ""
+            }`}
+            type="submit"
+            disabled={isLoading}
+          >
             Send
           </button>
         </div>

@@ -1,4 +1,5 @@
 import asyncio
+import base64
 from typing import Optional
 
 from fastapi import APIRouter, Depends, File, Form, Request, UploadFile, WebSocket
@@ -83,8 +84,11 @@ async def request_agent_response(
     return JSONResponse(
         content={
             "text": response.agent_response_text,
-            "audio": audio_content.decode("latin1") if audio_content else None,
+            "audio": base64.b64encode(audio_content).decode("utf-8")
+            if audio_content
+            else None,
             "markdown_text": response.markdown_text,
+            "author": response.author,
         }
     )
 

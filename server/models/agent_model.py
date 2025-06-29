@@ -1,5 +1,5 @@
 from enum import Enum
-from typing import Literal
+from typing import Literal, Optional
 
 from google.adk.agents import BaseAgent
 from pydantic import BaseModel
@@ -9,6 +9,8 @@ from sqlmodel import Field, SQLModel, String
 class AgentResponse(BaseModel):
     agent_response_text: str
     markdown_text: str | None = None
+    audio: Optional[str] = None
+    author: Optional[str] = None
 
 
 class ADKType(str, Enum):
