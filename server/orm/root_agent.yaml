@@ -9,7 +9,7 @@ instruction: |
 
   <INSTRUCTIONS>
   To complete the task, follow these instructions.
-  1.  Delegate to Student1 when the user asks for a broad solution.
+  1. Delegate to Student1 when the user asks for a broad solution.
   2. Delegate to Student2 when the user asks for someone to correct Student1, or to add an additional solution after Student 1 shares.
   3. Delegate to Student3 when the user asks for the minimum requirements to solve this task.
 

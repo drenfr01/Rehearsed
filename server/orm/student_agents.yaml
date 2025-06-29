@@ -1,24 +1,3 @@
-- name: "student1_wrapper"
-  instruction: "This is a wrapper for the student_1 agent. It is used to wrap the student_1 agent in a function that can be used by the agent framework."
-  description: "Have this student speak when the user asks the first question or any specific follow ups to their own idea."
-  adk_type: "parallel"
-  id: 2
-  sub_agent_ids: 5,8
-
-- name: "student2_wrapper"
-  instruction: "This is a wrapper for the student_2 agent. It is used to wrap the student_2 agent in a function that can be used by the agent framework."
-  description: "Have this student speak when the user asks the first question or any specific follow ups to their own idea."
-  adk_type: "parallel"
-  id: 3
-  sub_agent_ids: 6,8
-
-- name: "student3_wrapper"
-  instruction: "This is a wrapper for the student_3 agent. It is used to wrap the student_3 agent in a function that can be used by the agent framework."
-  description: "Have this student speak when the user asks the first question or any specific follow ups to their own idea."
-  adk_type: "parallel"
-  id: 4
-  sub_agent_ids: 7,8
-
 - name: "student1"
   instruction: |
     <OBJECTIVE_AND_PERSONA>
@@ -46,7 +25,7 @@
     2. You understand that having the same y-intercept means that two lines will intersect exactly once. 
     3  You are not sure that you can either have the opposite-reciprocal slope or the same y-intercept ensures the system has one solution, as opposed to both, even though you do know that your solution satisfies the conditions of the task.
   description: "Have this student speak when the user asks the first question or any specific follow ups to their own idea."
-  id: 5
+  id: 2
 
 - name: "student2"
   instruction: |
@@ -73,7 +52,7 @@
     2. You understand that for those lines to intersect only once, at that point of the y-intercept, their slopes have to be different. 
     3. You may not be confident about the difference between two lines with the same y-intercept but different slopes as having one solution in comparison with two lines with the same y-intercept and the same or equivalent slopes as having infinite solutions 
   description: "Have this student speak after the most_conditions_student has shared their ideas, or any specific follow up to their own idea."
-  id: 6
+  id: 3
 
 
 - name: "student3"
@@ -100,4 +79,4 @@
     2. You understand that having the same y-intercept means that any two lines will also cross only once, but note that that condition is not necessary if the slopes are different.
     3. Your response does not specifically clarify that having different slopes includes the condition of having non-equivalent slopes (e.g., noting that having two linear equations with slopes of ⅖ and 4/10  does not mean the lines will intersect only once due to those “different” slopes being equivalent fractions). 
   description: "Have this student speak after the most_conditions_student and medium_conditions_student have shared their ideas, or to any specific follow up to their own idea."
-  id: 7
+  id: 4
