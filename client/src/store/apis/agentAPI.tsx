@@ -103,7 +103,7 @@ const agentAPI = createApi({
           };
         },
       }),
-      provideAgentFeedback: builder.mutation({
+      provideOverallFeedback: builder.mutation({
         query: (agentRequest: AgentRequest) => {
           return {
             url: "/feedback",
@@ -117,6 +117,47 @@ const agentAPI = createApi({
           };
         },
       }),
+      postInlineFeedbackRequest: builder.mutation<AgentResponse, AgentRequest>({
+        query: (agentRequest: AgentRequest) => {
+          const formData = new FormData();
+          formData.append("agent_name", "inline_feedback_agent");
+          formData.append("message", agentRequest.message);
+          formData.append("user_id", agentRequest.userId);
+          formData.append("session_id", agentRequest.sessionId);
+
+          if (agentRequest.audio) {
+            formData.append("audio", agentRequest.audio, "recording.webm");
+          }
+
+          return {
+            url: "/request",
+            method: "POST",
+            body: formData,
+            formData: true,
+          };
+        },
+        transformResponse: (response: {
+          text: string;
+          audio: string | null;
+          markdown_text: string | null;
+          author: string | null;
+        }) => {
+          console.log("Feedback API Response received:", {
+            hasText: !!response.text,
+            hasAudio: !!response.audio,
+            hasMarkdown: !!response.markdown_text,
+            author: response.author,
+          });
+          return {
+            content: response.text,
+            role: "model",
+            author: response.author || "Feedback Assistant",
+            message_id: null,
+            audio: response.audio || undefined,
+            markdown_text: response.markdown_text || undefined,
+          };
+        },
+      }),
     };
   },
 });
@@ -125,6 +166,7 @@ export const {
   useStartSessionMutation,
   usePostRequestMutation,
   useFetchConversationQuery,
-  useProvideAgentFeedbackMutation,
+  useProvideOverallFeedbackMutation,
+  usePostInlineFeedbackRequestMutation,
 } = agentAPI;
 export { agentAPI };

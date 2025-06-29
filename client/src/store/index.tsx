@@ -47,8 +47,9 @@ export {
 export {
   usePostRequestMutation,
   useFetchConversationQuery,
-  useProvideAgentFeedbackMutation,
+  useProvideOverallFeedbackMutation,
   useStartSessionMutation,
+  usePostInlineFeedbackRequestMutation,
 } from "./apis/agentAPI";
 
 export {

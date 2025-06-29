@@ -4,9 +4,10 @@ import SidePanel from "../components/SidePanel";
 import FeedbackPanel from "../components/FeedbackPanel";
 import {
   usePostRequestMutation,
-  useProvideAgentFeedbackMutation,
+  useProvideOverallFeedbackMutation,
   useCreateSessionMutation,
   useGetSessionContentQuery,
+  usePostInlineFeedbackRequestMutation,
 } from "../store";
 import { useEffect, useState } from "react";
 import { AgentResponse } from "../interfaces/AgentInterface";
@@ -177,16 +178,18 @@ export default function AgentSimulation() {
   }, []);
 
   const [postRequest, results] = usePostRequestMutation();
-  const [provideAgentFeedback] = useProvideAgentFeedbackMutation({
-    fixedCacheKey: "provideAgentFeedback",
+  const [provideOverallFeedback] = useProvideOverallFeedbackMutation({
+    fixedCacheKey: "provideOverallFeedback",
   });
+  const [postInlineFeedbackRequest, feedbackResults] =
+    usePostInlineFeedbackRequestMutation();
 
-  // Update feedback when we get a new response
+  // Update feedback when we get a new feedback response
   useEffect(() => {
-    if (results.data?.markdown_text) {
-      setLatestFeedback(results.data.markdown_text);
+    if (feedbackResults.data) {
+      setLatestFeedback(feedbackResults.data.content);
     }
-  }, [results.data]);
+  }, [feedbackResults.data]);
 
   // Add user message to conversation when they send a message
   const handleUserMessage = (message: string) => {
@@ -276,11 +279,12 @@ export default function AgentSimulation() {
   const content = (
     <ChatInput
       postRequest={postRequest}
-      provideAgentFeedback={provideAgentFeedback}
+      provideOverallFeedback={provideOverallFeedback}
+      postInlineFeedbackRequest={postInlineFeedbackRequest}
       userId={userId}
       sessionId={sessionId}
       onUserMessage={handleUserMessage}
-      isLoading={results.isLoading}
+      isLoading={results.isLoading || feedbackResults.isLoading}
     />
   );
 
@@ -332,7 +336,7 @@ export default function AgentSimulation() {
 
             {/* Right column - Feedback */}
             <FeedbackPanel
-              isLoading={results.isLoading}
+              isLoading={results.isLoading || feedbackResults.isLoading}
               latestFeedback={latestFeedback}
             />
           </div>
