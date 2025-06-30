@@ -1,6 +1,6 @@
 from typing import List
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request
 from server.dependencies.database import get_session
 from server.models.agent_model import AgentPydantic
 from server.models.user_model import User
@@ -12,6 +12,7 @@ router = APIRouter(prefix="/agents_crud", tags=["agents_crud"])
 
 @router.post("/", response_model=AgentPydantic)
 async def create_agent(
+    request: Request,
     agent: AgentPydantic,
     session: Session = Depends(get_session),
     _: User = Depends(verify_admin),
@@ -20,6 +21,10 @@ async def create_agent(
     session.add(agent)
     session.commit()
     session.refresh(agent)
+
+    # Update agent in memory
+    request.app.state.agent_service.get_agents_from_database()
+
     return agent
 
 
@@ -47,6 +52,7 @@ async def get_agent(
 
 @router.put("/{agent_id}", response_model=AgentPydantic)
 async def update_agent(
+    request: Request,
     agent_id: int,
     agent_update: AgentPydantic,
     session: Session = Depends(get_session),
@@ -64,11 +70,15 @@ async def update_agent(
     session.add(db_agent)
     session.commit()
     session.refresh(db_agent)
+
+    # Update agent in memory
+    request.app.state.agent_service.get_agents_from_database()
     return db_agent
 
 
 @router.delete("/{agent_id}")
 async def delete_agent(
+    request: Request,
     agent_id: int,
     session: Session = Depends(get_session),
     _: User = Depends(verify_admin),
@@ -80,4 +90,8 @@ async def delete_agent(
 
     session.delete(agent)
     session.commit()
+
+    # Update agent in memory
+    request.app.state.agent_service.get_agents_from_database()
+
     return {"message": "Agent deleted successfully"}
