@@ -24,13 +24,13 @@ class AgentService:
         self.live_request_queue = None
         self.scenario_service = scenario_service
 
-        self.in_memory_agent_lookup: dict[str, InMemoryAgent] = (
-            self.get_agents_from_database()
-        )
+        # TODO: probably a better way to do this, but it enables
+        # the agent CRUD routes to also call get_agents_from_database
+        # to refresh the agents in memory when the DB is updated
+        self.in_memory_agent_lookup: dict[str, InMemoryAgent] = None
+        self.get_agents_from_database()
 
-    def get_agents_from_database(
-        self, load_tools: bool = True
-    ) -> dict[str, InMemoryAgent]:
+    def get_agents_from_database(self, load_tools: bool = True) -> None:
         """Loads all agents in the database into memory with all of their sub agents.
 
         First it loads all the agent pydantic objects from the database into memory.
@@ -40,9 +40,6 @@ class AgentService:
 
         Args:
             load_tools: Whether to load the tools for the agent
-
-        Returns:
-            A dict of InMemoryAgents indexed by their name
         """
         # TODO: move this to ORM layer?
         session = next(get_session())
@@ -65,7 +62,7 @@ class AgentService:
                     agent_id, agent_pydantic_lookup, load_tools=load_tools
                 ),
             )
-        return in_memory_agent_lookup
+        self.in_memory_agent_lookup = in_memory_agent_lookup
 
     def list_available_agents(self) -> list[str]:
         """Returns a list of available agents loaded into memory"""

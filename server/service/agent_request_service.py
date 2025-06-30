@@ -86,7 +86,6 @@ class AgentRequestService:
         Returns:
             The final response from the agent
         """
-        text_str = None
         event_author = None
         print(f"\n>>> User Query: {query}")
         # Prepare the user's message in ADK format
