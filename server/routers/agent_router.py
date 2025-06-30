@@ -6,7 +6,6 @@ from fastapi import APIRouter, Depends, File, Form, Request, UploadFile, WebSock
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 
-from server.agents.agent_streaming import streaming_root_agent
 from server.models.agent_interface import Conversation
 from server.service.agent_request_service import AgentRequestService
 from server.service.agent_service_streaming import AgentServiceStreaming
@@ -118,31 +117,33 @@ async def request_feedback(
 
 
 @router.websocket("/ws/{user_id}/{session_id}")
-async def agent_websocket(
+async def websocket_endpoint(
     websocket: WebSocket,
-    user_id: str,
-    session_id: str,
-    agent_service: AgentServiceStreaming = Depends(get_agent_service_streaming),
+    user_id: int,
+    is_audio: str,
+    agent_service_streaming: AgentServiceStreaming = Depends(
+        get_agent_service_streaming
+    ),
 ):
+    """Client websocket endpoint"""
+    # Wait for client connection
     await websocket.accept()
-    print(f"Client #{session_id} connected")
+    print(f"Client #{user_id} connected, audio mode: {is_audio}")
 
-    # # Start agent session
-    _, live_events, live_request_queue = agent_service.start_agent_session(
-        user_id, session_id, streaming_root_agent
-    )
-
-    # Start agent to client messaging
+    # Start tasks
     agent_to_client_task = asyncio.create_task(
-        agent_service.agent_to_client_messaging(websocket, live_events)
+        agent_service_streaming.agent_to_client_messaging(websocket)
     )
-
-    # Start client to agent messaging
     client_to_agent_task = asyncio.create_task(
-        agent_service.client_to_agent_messaging(websocket, live_request_queue)
+        agent_service_streaming.client_to_agent_messaging(websocket)
     )
 
-    # Wait for both tasks to complete
-    await asyncio.gather(agent_to_client_task, client_to_agent_task)
+    # Wait until the websocket is disconnected or an error occurs
+    tasks = [agent_to_client_task, client_to_agent_task]
+    await asyncio.wait(tasks, return_when=asyncio.FIRST_EXCEPTION)
 
-    print(f"Client #{session_id} disconnected")
+    # Close LiveRequestQueue
+    agent_service_streaming.live_request_queue.close()
+
+    # Disconnected
+    print(f"Client #{user_id} disconnected")
