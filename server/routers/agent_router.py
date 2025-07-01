@@ -2,7 +2,16 @@ import asyncio
 import base64
 from typing import Optional
 
-from fastapi import APIRouter, Depends, File, Form, Request, UploadFile, WebSocket
+from fastapi import (
+    APIRouter,
+    Depends,
+    File,
+    Form,
+    Request,
+    UploadFile,
+    WebSocket,
+    WebSocketDisconnect,
+)
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 
@@ -28,10 +37,6 @@ async def get_agent_service_request(request: Request) -> AgentRequestService:
     return AgentRequestService(
         agent_service=request.app.state.agent_service,
     )
-
-
-async def get_agent_service_streaming() -> AgentServiceStreaming:
-    return AgentServiceStreaming()
 
 
 class AgentRequest(BaseModel):
@@ -120,30 +125,64 @@ async def request_feedback(
 async def websocket_endpoint(
     websocket: WebSocket,
     user_id: int,
-    is_audio: str,
-    agent_service_streaming: AgentServiceStreaming = Depends(
-        get_agent_service_streaming
-    ),
+    session_id: str,
+    is_audio: str = "false",
 ):
     """Client websocket endpoint"""
     # Wait for client connection
     await websocket.accept()
-    print(f"Client #{user_id} connected, audio mode: {is_audio}")
+    print(f"Client #{user_id} connected, session: {session_id}, audio mode: {is_audio}")
 
-    # Start tasks
-    agent_to_client_task = asyncio.create_task(
-        agent_service_streaming.agent_to_client_messaging(websocket)
-    )
-    client_to_agent_task = asyncio.create_task(
-        agent_service_streaming.client_to_agent_messaging(websocket)
-    )
+    agent_service_streaming = None
+    try:
+        # Create the streaming service directly
+        agent_service_streaming = AgentServiceStreaming(
+            websocket.app.state.agent_service
+        )
 
-    # Wait until the websocket is disconnected or an error occurs
-    tasks = [agent_to_client_task, client_to_agent_task]
-    await asyncio.wait(tasks, return_when=asyncio.FIRST_EXCEPTION)
+        # Initialize the agent session
+        (
+            live_events,
+            live_request_queue,
+        ) = await agent_service_streaming.start_agent_session(
+            user_id=str(user_id),
+            session_id=session_id,
+            root_agent_name="streaming_student_agent",
+            is_audio=is_audio.lower() == "true",
+        )
 
-    # Close LiveRequestQueue
-    agent_service_streaming.live_request_queue.close()
+        print("Started Agent Session")
+        # Start tasks
+        agent_to_client_task = asyncio.create_task(
+            agent_service_streaming.agent_to_client_messaging(websocket, live_events)
+        )
+        client_to_agent_task = asyncio.create_task(
+            agent_service_streaming.client_to_agent_messaging(
+                websocket, live_request_queue
+            )
+        )
 
-    # Disconnected
-    print(f"Client #{user_id} disconnected")
+        # Wait until both tasks complete (either normally or with exceptions)
+        tasks = [agent_to_client_task, client_to_agent_task]
+        done, pending = await asyncio.wait(tasks, return_when=asyncio.FIRST_EXCEPTION)
+
+        # Cancel any pending tasks
+        for task in pending:
+            task.cancel()
+
+        # Check for exceptions in completed tasks
+        for task in done:
+            if task.exception():
+                print(f"Task completed with exception: {task.exception()}")
+
+    except WebSocketDisconnect:
+        print(f"Client #{user_id} disconnected normally")
+    except Exception as e:
+        print(f"Error in WebSocket connection: {e}")
+    finally:
+        # Close LiveRequestQueue
+        if agent_service_streaming and live_request_queue:
+            live_request_queue.close()
+
+        # Disconnected
+        print(f"Client #{user_id} disconnected")
