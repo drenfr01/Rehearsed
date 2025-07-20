@@ -5,7 +5,7 @@ import os
 from fastapi import WebSocket, WebSocketDisconnect
 from google.adk.agents import LiveRequestQueue
 from google.adk.agents.run_config import RunConfig
-from google.adk.runners import Runner
+from google.adk.runners import InMemoryRunner
 from google.genai.types import Blob, Content, Part
 
 from server.service.agent_service import AgentService
@@ -42,10 +42,9 @@ class AgentServiceStreaming:
 
         print(f"Root agent: {root_agent.name}")
 
-        runner = Runner(
+        runner = InMemoryRunner(
             app_name=self.app_name,
             agent=root_agent,
-            session_service=self.session_service.get_session_service(),
         )
 
         # Set response modality
