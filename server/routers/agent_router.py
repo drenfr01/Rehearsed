@@ -138,8 +138,8 @@ async def start_agent_session(user_id, is_audio=False):
         # A unique name for the agent.
         name="google_search_agent",
         # The Large Language Model (LLM) that agent will use.
-        model="gemini-2.0-flash-exp",  # if this model does not work, try below
-        # model="gemini-2.0-flash-live-001",
+        model="gemini-2.0-flash-live-001",  # This model supports audio generation
+        # model="gemini-2.0-flash-exp",  # fallback
         # A short description of the agent's purpose.
         description="Agent to answer questions using Google Search.",
         # Instructions to set the agent's behavior.
@@ -163,6 +163,7 @@ async def start_agent_session(user_id, is_audio=False):
     # Set response modality
     modality = "AUDIO" if is_audio else "TEXT"
     run_config = RunConfig(response_modalities=[modality])
+    print(f"Agent session started with modality: {modality}")
 
     # Create a LiveRequestQueue for this session
     live_request_queue = LiveRequestQueue()
@@ -180,6 +181,7 @@ async def agent_to_client_messaging(websocket, live_events):
     """Agent to client communication"""
     while True:
         async for event in live_events:
+            print(f"[AGENT EVENT]: {event}")
             # If the turn complete or interrupted, send it
             if event.turn_complete or event.interrupted:
                 message = {
@@ -211,6 +213,10 @@ async def agent_to_client_messaging(websocket, live_events):
                     await websocket.send_text(json.dumps(message))
                     print(f"[AGENT TO CLIENT]: audio/pcm: {len(audio_data)} bytes.")
                     continue
+            else:
+                print(
+                    f"[AGENT TO CLIENT]: Non-audio part - mime_type: {part.inline_data.mime_type if part.inline_data else 'None'}"
+                )
 
             # If it's text and a parial text, send it
             if part.text and event.partial:
