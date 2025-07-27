@@ -130,15 +130,35 @@ export default function AgentSimulationStreaming() {
         audioContextRef.current = new AudioContext();
       }
 
+      // Decode base64 PCM data
       const audioData = atob(base64Audio);
       const audioArray = new Uint8Array(audioData.length);
       for (let i = 0; i < audioData.length; i++) {
         audioArray[i] = audioData.charCodeAt(i);
       }
 
-      const audioBuffer = await audioContextRef.current.decodeAudioData(
-        audioArray.buffer
+      // PCM data is raw audio, so we need to convert it to a format the Web Audio API can understand
+      // Assuming 48kHz sample rate, 16-bit, mono PCM (common for TTS output)
+      const sampleRate = 48000;
+      const numberOfChannels = 1;
+      const length = audioArray.length / 2; // 16-bit = 2 bytes per sample
+
+      const audioBuffer = audioContextRef.current.createBuffer(
+        numberOfChannels,
+        length,
+        sampleRate
       );
+
+      const channelData = audioBuffer.getChannelData(0);
+
+      // Convert 16-bit PCM to float32 (Web Audio API format)
+      for (let i = 0; i < length; i++) {
+        // Read 16-bit little-endian PCM
+        const sample = audioArray[i * 2] | (audioArray[i * 2 + 1] << 8);
+        // Convert to float32 (-1 to 1 range)
+        channelData[i] = sample / 32768.0;
+      }
+
       audioQueueRef.current.push(audioBuffer);
 
       if (!isProcessingAudioRef.current) {
