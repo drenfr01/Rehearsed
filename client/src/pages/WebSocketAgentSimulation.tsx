@@ -1,28 +1,10 @@
 import { useEffect, useState, useRef } from "react";
 
 // Audio utility functions - will be loaded dynamically
-let startAudioPlayerWorklet: () => Promise<[AudioWorkletNode, AudioContext]>;
-let startAudioRecorderWorklet: (
-  handler: (data: ArrayBuffer) => void
-) => Promise<[AudioWorkletNode, AudioContext, MediaStream]>;
-
-// Load audio utilities dynamically
-const loadAudioUtilities = async () => {
-  try {
-    // @ts-expect-error - JavaScript module without type declarations
-    const audioPlayerModule = await import("../helpers/audio-player.js");
-    // @ts-expect-error - JavaScript module without type declarations
-    const audioRecorderModule = await import("../helpers/audio-recorder.js");
-
-    startAudioPlayerWorklet = audioPlayerModule.startAudioPlayerWorklet;
-    startAudioRecorderWorklet = audioRecorderModule.startAudioRecorderWorklet;
-
-    console.log("Audio utilities loaded successfully");
-  } catch (error) {
-    console.error("Failed to load audio utilities:", error);
-    throw error;
-  }
-};
+// @ts-expect-error - Audio player worklet
+import { startAudioPlayerWorklet } from "../helpers/audio-player.js";
+// @ts-expect-error - Audio recorder worklet
+import { startAudioRecorderWorklet } from "../helpers/audio-recorder.js";
 
 interface WebSocketMessage {
   mime_type?: string;
@@ -46,35 +28,19 @@ export default function WebSocketAgentSimulation() {
 
   // Refs for WebSocket and audio
   const websocketRef = useRef<WebSocket | null>(null);
-  const shouldReconnectRef = useRef(true);
   const audioPlayerNodeRef = useRef<AudioWorkletNode | null>(null);
   const audioRecorderNodeRef = useRef<AudioWorkletNode | null>(null);
+  const audioSourceRef = useRef<MediaStreamAudioSourceNode | null>(null);
   const audioBufferRef = useRef<Uint8Array[]>([]);
   const bufferTimerRef = useRef<number | null>(null);
   const currentMessageRef = useRef<string>("");
 
   // WebSocket connection function (not memoized to avoid dependency issues)
-  const connectWebSocket = () => {
-    // Close existing connection first
-    if (websocketRef.current) {
-      shouldReconnectRef.current = false; // Disable reconnection for intentional close
-      websocketRef.current.close();
-      websocketRef.current = null;
-    }
-
-    const wsUrl = `ws://localhost:8000/agent/ws/${userId}/${sessionId}?is_audio=${isAudio}`;
+  const connectWebSocket = (audioMode = isAudio) => {
+    const wsUrl = `ws://localhost:8000/agent/ws/${userId}/${sessionId}?is_audio=${audioMode}`;
     console.log("Connecting to WebSocket:", wsUrl);
-    console.log(
-      "Session ID:",
-      sessionId,
-      "User ID:",
-      userId,
-      "Is Audio:",
-      isAudio
-    );
 
     const ws = new WebSocket(wsUrl);
-    shouldReconnectRef.current = true; // Re-enable reconnection for new connection
 
     ws.onopen = () => {
       console.log("WebSocket connection opened successfully.");
@@ -93,20 +59,16 @@ export default function WebSocketAgentSimulation() {
       }
 
       // Check for interrupt message
-      if (messageFromServer.interrupted) {
+      if (
+        messageFromServer.interrupted &&
+        messageFromServer.interrupted === true
+      ) {
         // Stop audio playback if it's playing
         if (audioPlayerNodeRef.current) {
           audioPlayerNodeRef.current.port.postMessage({
             command: "endOfAudio",
           });
         }
-        return;
-      }
-
-      // Handle errors from server
-      if (messageFromServer.error) {
-        console.error("Server error:", messageFromServer.error);
-        setMessages((prev) => [...prev, `ERROR: ${messageFromServer.error}`]);
         return;
       }
 
@@ -124,8 +86,7 @@ export default function WebSocketAgentSimulation() {
       if (messageFromServer.mime_type === "text/plain") {
         // Add a new message for a new turn
         if (currentMessageId === null) {
-          const newMessageId = Math.random().toString(36).substring(7);
-          setCurrentMessageId(newMessageId);
+          setCurrentMessageId(Math.random().toString(36).substring(7));
           currentMessageRef.current = messageFromServer.data!;
           setMessages((prev) => [...prev, messageFromServer.data!]);
         } else {
@@ -148,25 +109,10 @@ export default function WebSocketAgentSimulation() {
         event.reason
       );
       setIsConnected(false);
-
-      // Only reconnect if we should (not during intentional disconnections)
-      if (shouldReconnectRef.current) {
-        setTimeout(() => {
-          console.log("Reconnecting in 5 seconds...");
-          connectWebSocket();
-        }, 5000);
-      }
     };
 
     ws.onerror = (error) => {
       console.error("WebSocket error:", error);
-      console.error("WebSocket readyState:", ws.readyState);
-      console.error("WebSocket URL:", wsUrl);
-      console.error("Error details:", {
-        target: error.target,
-        type: error.type,
-        timeStamp: error.timeStamp,
-      });
     };
 
     websocketRef.current = ws;
@@ -267,23 +213,36 @@ export default function WebSocketAgentSimulation() {
   // Start audio
   const startAudio = async () => {
     try {
-      // Load audio utilities
-      await loadAudioUtilities();
-
       // Start audio output
-      const [playerNode] = await startAudioPlayerWorklet();
-      audioPlayerNodeRef.current = playerNode;
-
-      // Start audio input
-      const [recorderNode] = await startAudioRecorderWorklet(
-        audioRecorderHandler
+      startAudioPlayerWorklet().then(
+        ([node]: [AudioWorkletNode, AudioContext]) => {
+          audioPlayerNodeRef.current = node;
+        }
       );
-      audioRecorderNodeRef.current = recorderNode;
+
+      // Start audio input - THIS IS THE KEY FIX!
+      startAudioRecorderWorklet(audioRecorderHandler).then(
+        ([node, , , source]: [
+          AudioWorkletNode,
+          AudioContext,
+          MediaStream,
+          MediaStreamAudioSourceNode
+        ]) => {
+          audioRecorderNodeRef.current = node;
+          audioSourceRef.current = source;
+
+          // CRITICAL: Connect the audio source to the worklet node
+          source.connect(node);
+
+          console.log("Audio recorder connected and ready!");
+        }
+      );
 
       setAudioStarted(true);
       setIsAudio(true);
 
-      connectWebSocket();
+      // Reconnect WebSocket with audio mode enabled
+      connectWebSocket(true);
     } catch (error) {
       console.error("Error starting audio:", error);
     }
@@ -293,19 +252,6 @@ export default function WebSocketAgentSimulation() {
   const handleStartAudio = () => {
     startAudio();
   };
-
-  // Cleanup on unmount
-  useEffect(() => {
-    return () => {
-      if (bufferTimerRef.current) {
-        clearInterval(bufferTimerRef.current);
-      }
-      shouldReconnectRef.current = false; // Disable reconnection on unmount
-      if (websocketRef.current) {
-        websocketRef.current.close();
-      }
-    };
-  }, []);
 
   return (
     <div style={{ padding: "20px", maxWidth: "800px", margin: "0 auto" }}>
