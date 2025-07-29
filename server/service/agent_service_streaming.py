@@ -6,7 +6,14 @@ from fastapi import WebSocket, WebSocketDisconnect
 from google.adk.agents import LiveRequestQueue
 from google.adk.agents.run_config import RunConfig
 from google.adk.runners import InMemoryRunner
-from google.genai.types import Blob, Content, Part
+from google.genai.types import (
+    Blob,
+    Content,
+    Part,
+    SpeechConfig,
+    VoiceConfig,
+    PrebuiltVoiceConfig,
+)
 
 from server.service.agent_service import AgentService
 from server.service.session_service import SessionService
@@ -36,10 +43,12 @@ class AgentServiceStreaming:
 
         # session = await self.session_service.get_or_create_session(user_id, session_id)
 
-        root_agent = self.agent_service.lookup_agent(root_agent_name).agent
-        if not root_agent:
+        in_memory_agent = self.agent_service.lookup_agent(root_agent_name)
+        if not in_memory_agent:
             raise ValueError(f"Root agent {root_agent_name} not found")
 
+        root_agent = in_memory_agent.agent
+        pydantic_agent = in_memory_agent.agent_pydantic
         print(f"Root agent: {root_agent.name}")
 
         runner = InMemoryRunner(
@@ -49,7 +58,16 @@ class AgentServiceStreaming:
 
         # Set response modality
         modality = "AUDIO" if is_audio else "TEXT"
-        run_config = RunConfig(response_modalities=[modality])
+        run_config = RunConfig(
+            response_modalities=[modality],
+            speech_config=SpeechConfig(
+                voice_config=VoiceConfig(
+                    prebuilt_voice_config=PrebuiltVoiceConfig(
+                        voice_name=pydantic_agent.voice_name,
+                    )
+                ),
+            ),
+        )
 
         # Create a LiveRequestQueue for this session
         live_request_queue = LiveRequestQueue()

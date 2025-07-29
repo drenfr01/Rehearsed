@@ -13,7 +13,7 @@ from server.models.user_model import UserInDB
 
 # TODO: move these to the .env file
 PRO_MODEL = "gemini-2.5-pro"
-FLASH_MODEL = "gemini-2.5-flash"
+FLASH_MODEL = "gemini-2.0-flash-exp"
 
 
 def initialize_scenario_data(session: Session) -> None:
@@ -103,6 +103,7 @@ def load_agents(
                 tools=agent_data.get("tools", ""),
                 modules=agent_data.get("modules", ""),
                 sub_agent_ids=agent_data.get("sub_agent_ids", ""),
+                voice_name=agent_data.get("voice_name", "Aoede"),
             )
         )
         if agent_data.get("sub_agent_ids"):

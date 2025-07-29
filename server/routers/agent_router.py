@@ -275,7 +275,7 @@ async def websocket_endpoint(
 
     # # Start agent session
     live_events, live_request_queue = await agent_service_streaming.start_agent_session(
-        user_id, session_id, "streaming_student_agent", is_audio
+        user_id, session_id, "root_agent", is_audio
     )
 
     # Start agent to client messaging
