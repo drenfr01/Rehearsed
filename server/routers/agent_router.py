@@ -25,6 +25,7 @@ from google.genai.types import (
 from pydantic import BaseModel
 
 from server.models.agent_interface import Conversation
+from server.service.agent_service_streaming import AgentServiceStreaming
 from server.service.agent_request_service import AgentRequestService
 from server.service.session_service import SessionService
 from server.service.speech_to_text_service import SpeechToTextService
@@ -253,38 +254,41 @@ async def client_to_agent_messaging(websocket, live_request_queue):
 #
 
 
+async def get_agent_service_streaming() -> AgentServiceStreaming:
+    return AgentServiceStreaming()
+
+
 @router.websocket("/ws/{user_id}/{session_id}")
 async def websocket_endpoint(
     websocket: WebSocket,
-    user_id: int,
+    user_id: str,
     session_id: str,
     is_audio: str = "false",
 ):
     """Client websocket endpoint"""
+    agent_service_streaming = AgentServiceStreaming(
+        agent_service=websocket.app.state.agent_service,
+    )
     # Wait for client connection
     await websocket.accept()
-    print(f"Client #{user_id} connected, audio mode: {is_audio}")
+    print(f"Client #{session_id} connected")
 
-    # Start agent session
-    user_id_str = str(user_id)
-    live_events, live_request_queue = await start_agent_session(
-        user_id_str, is_audio == "true"
+    # # Start agent session
+    live_events, live_request_queue = await agent_service_streaming.start_agent_session(
+        user_id, session_id, "streaming_student_agent", is_audio
     )
 
-    # Start tasks
+    # Start agent to client messaging
     agent_to_client_task = asyncio.create_task(
-        agent_to_client_messaging(websocket, live_events)
+        agent_service_streaming.agent_to_client_messaging(websocket, live_events)
     )
+
+    # Start client to agent messaging
     client_to_agent_task = asyncio.create_task(
-        client_to_agent_messaging(websocket, live_request_queue)
+        agent_service_streaming.client_to_agent_messaging(websocket, live_request_queue)
     )
 
-    # Wait until the websocket is disconnected or an error occurs
-    tasks = [agent_to_client_task, client_to_agent_task]
-    await asyncio.wait(tasks, return_when=asyncio.FIRST_EXCEPTION)
+    # Wait for both tasks to complete
+    await asyncio.gather(agent_to_client_task, client_to_agent_task)
 
-    # Close LiveRequestQueue
-    live_request_queue.close()
-
-    # Disconnected
-    print(f"Client #{user_id} disconnected")
+    print(f"Client #{session_id} disconnected")

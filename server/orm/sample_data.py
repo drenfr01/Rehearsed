@@ -148,7 +148,7 @@ def initialize_sample_agent_data():
         )
         load_agents(
             "server/orm/streaming_student_agent.yaml",
-            model="gemini-live-2.5-flash-preview-native-audio",
+            model="gemini-2.0-flash-exp",
             session=session,
         )
 
