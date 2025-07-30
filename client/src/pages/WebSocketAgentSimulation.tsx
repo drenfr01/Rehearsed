@@ -20,7 +20,6 @@ const sessionId = Math.floor(Math.random() * 1000000).toString();
 export default function WebSocketAgentSimulation() {
   const userId = "1";
   const [messages, setMessages] = useState<string[]>([]);
-  const [currentMessageId, setCurrentMessageId] = useState<string | null>(null);
   const [inputMessage, setInputMessage] = useState("");
   const [isConnected, setIsConnected] = useState(false);
   const [isAudio, setIsAudio] = useState(false);
@@ -34,6 +33,7 @@ export default function WebSocketAgentSimulation() {
   const audioBufferRef = useRef<Uint8Array[]>([]);
   const bufferTimerRef = useRef<number | null>(null);
   const currentMessageRef = useRef<string>("");
+  const currentMessageIdRef = useRef<string | null>(null);
 
   // WebSocket connection function (not memoized to avoid dependency issues)
   const connectWebSocket = (audioMode = isAudio) => {
@@ -53,7 +53,8 @@ export default function WebSocketAgentSimulation() {
 
       // Check if the turn is complete
       if (messageFromServer.turn_complete) {
-        setCurrentMessageId(null);
+        console.log("Turn completed, resetting currentMessageId");
+        currentMessageIdRef.current = null;
         currentMessageRef.current = "";
         return;
       }
@@ -84,17 +85,29 @@ export default function WebSocketAgentSimulation() {
 
       // If it's text, display it
       if (messageFromServer.mime_type === "text/plain") {
+        console.log(
+          "Received text chunk:",
+          messageFromServer.data,
+          "Current message ID:",
+          currentMessageIdRef.current
+        );
+
         // Add a new message for a new turn
-        if (currentMessageId === null) {
-          setCurrentMessageId(Math.random().toString(36).substring(7));
+        if (currentMessageIdRef.current === null) {
+          const newMessageId = Math.random().toString(36).substring(7);
+          console.log("Starting new message with ID:", newMessageId);
+          currentMessageIdRef.current = newMessageId;
           currentMessageRef.current = messageFromServer.data!;
           setMessages((prev) => [...prev, messageFromServer.data!]);
         } else {
           // Append to existing message
+          console.log("Appending to existing message");
           currentMessageRef.current += messageFromServer.data!;
           setMessages((prev) => {
             const newMessages = [...prev];
-            newMessages[newMessages.length - 1] = currentMessageRef.current;
+            if (newMessages.length > 0) {
+              newMessages[newMessages.length - 1] = currentMessageRef.current;
+            }
             return newMessages;
           });
         }
@@ -295,7 +308,7 @@ export default function WebSocketAgentSimulation() {
       setAudioStarted(false);
       setIsAudio(false);
       setIsConnected(false);
-      setCurrentMessageId(null);
+      currentMessageIdRef.current = null;
       currentMessageRef.current = "";
 
       console.log("Audio stopped and WebSocket disconnected");
