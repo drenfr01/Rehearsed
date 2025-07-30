@@ -13,7 +13,7 @@ from server.models.user_model import UserInDB
 
 # TODO: move these to the .env file
 PRO_MODEL = "gemini-2.5-pro"
-FLASH_MODEL = "gemini-2.0-flash-exp"
+FLASH_MODEL = "gemini-live-2.5-flash-preview"
 
 
 def initialize_scenario_data(session: Session) -> None:

@@ -26,7 +26,7 @@
     3  You are not sure that you can either have the opposite-reciprocal slope or the same y-intercept ensures the system has one solution, as opposed to both, even though you do know that your solution satisfies the conditions of the task.
   description: "Have this student speak when the user asks the first question or any specific follow ups to their own idea."
   id: 2
-  voice_name: "Aoede"
+  voice_name: "Algenib"
 
 - name: "student2"
   instruction: |
