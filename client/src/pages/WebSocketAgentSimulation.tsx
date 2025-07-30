@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from "react";
+import { useState, useRef } from "react";
 
 // Audio utility functions - will be loaded dynamically
 // @ts-expect-error - Audio player worklet
@@ -253,6 +253,57 @@ export default function WebSocketAgentSimulation() {
     startAudio();
   };
 
+  // Stop audio and disconnect
+  const stopAudio = () => {
+    try {
+      // Stop audio playback
+      if (audioPlayerNodeRef.current) {
+        audioPlayerNodeRef.current.port.postMessage({
+          command: "endOfAudio",
+        });
+        audioPlayerNodeRef.current = null;
+      }
+
+      // Stop audio recording
+      if (audioRecorderNodeRef.current) {
+        audioRecorderNodeRef.current.disconnect();
+        audioRecorderNodeRef.current = null;
+      }
+
+      // Disconnect audio source
+      if (audioSourceRef.current) {
+        audioSourceRef.current.disconnect();
+        audioSourceRef.current = null;
+      }
+
+      // Clear buffer timer
+      if (bufferTimerRef.current) {
+        clearInterval(bufferTimerRef.current);
+        bufferTimerRef.current = null;
+      }
+
+      // Clear audio buffer
+      audioBufferRef.current = [];
+
+      // Close WebSocket connection
+      if (websocketRef.current) {
+        websocketRef.current.close();
+        websocketRef.current = null;
+      }
+
+      // Reset state
+      setAudioStarted(false);
+      setIsAudio(false);
+      setIsConnected(false);
+      setCurrentMessageId(null);
+      currentMessageRef.current = "";
+
+      console.log("Audio stopped and WebSocket disconnected");
+    } catch (error) {
+      console.error("Error stopping audio:", error);
+    }
+  };
+
   return (
     <div style={{ padding: "20px", maxWidth: "800px", margin: "0 auto" }}>
       <h1 style={{ fontSize: "24px", marginBottom: "20px" }}>
@@ -291,16 +342,19 @@ export default function WebSocketAgentSimulation() {
         )}
 
         {audioStarted && (
-          <span
+          <button
+            onClick={stopAudio}
             style={{
-              padding: "5px 10px",
-              backgroundColor: "#3273dc",
+              padding: "10px 20px",
+              backgroundColor: "#ff3860",
               color: "white",
+              border: "none",
               borderRadius: "4px",
+              cursor: "pointer",
             }}
           >
-            Audio Mode Active
-          </span>
+            Stop
+          </button>
         )}
       </div>
 
