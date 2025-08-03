@@ -84,6 +84,7 @@ export default function WebSocketAgentSimulation() {
       }
 
       // If it's text, display it
+      // TODO: make this a separate component that displays the messages
       if (messageFromServer.mime_type === "text/plain") {
         console.log(
           "Received text chunk:",
@@ -160,6 +161,7 @@ export default function WebSocketAgentSimulation() {
     }
   };
 
+  // TODO: move utility functions to a separate file
   // Audio utility functions
   const base64ToArray = (base64: string): ArrayBuffer => {
     const binaryString = window.atob(base64);
