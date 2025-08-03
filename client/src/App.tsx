@@ -2,6 +2,7 @@ import "bulma/css/bulma.css";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import Root from "./pages/Root";
 import AgentSimulation from "./pages/AgentSimulation";
+import WebSocketAgentSimulation from "./pages/WebSocketAgentSimulation";
 import ScenarioIntroduction from "./pages/ScenarioIntroduction";
 import ScenarioFeedback from "./pages/ScenarioFeedback";
 import ScenarioSelection from "./pages/ScenarioSelection";
@@ -31,6 +32,10 @@ const router = createBrowserRouter([
       {
         path: "agent-simulation",
         element: <AgentSimulation />,
+      },
+      {
+        path: "agent-simulation-streaming",
+        element: <WebSocketAgentSimulation />,
       },
       {
         path: "scenario-feedback",

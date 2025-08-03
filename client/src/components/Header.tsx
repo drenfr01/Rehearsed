@@ -24,6 +24,9 @@ export default function Header() {
             <Link to="/agent-simulation" className="navbar-item">
               Agent Simulation
             </Link>
+            <Link to="/agent-simulation-streaming" className="navbar-item">
+              Agent Simulation (Streaming)
+            </Link>
             <Link to="/scenario-feedback" className="navbar-item">
               Scenario Feedback
             </Link>

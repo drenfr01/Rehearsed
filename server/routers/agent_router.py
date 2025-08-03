@@ -1,15 +1,32 @@
 import asyncio
 import base64
+import json
 from typing import Optional
 
-from fastapi import APIRouter, Depends, File, Form, Request, UploadFile, WebSocket
+from fastapi import (
+    APIRouter,
+    Depends,
+    File,
+    Form,
+    Request,
+    UploadFile,
+    WebSocket,
+)
 from fastapi.responses import JSONResponse
+from google.adk.agents import Agent, LiveRequestQueue
+from google.adk.agents.run_config import RunConfig
+from google.adk.runners import InMemoryRunner
+from google.adk.tools import google_search  # Import the tool
+from google.genai.types import (
+    Blob,
+    Content,
+    Part,
+)
 from pydantic import BaseModel
 
-from server.agents.agent_streaming import streaming_root_agent
 from server.models.agent_interface import Conversation
-from server.service.agent_request_service import AgentRequestService
 from server.service.agent_service_streaming import AgentServiceStreaming
+from server.service.agent_request_service import AgentRequestService
 from server.service.session_service import SessionService
 from server.service.speech_to_text_service import SpeechToTextService
 from server.service.text_to_speech_service import TextToSpeechService
@@ -24,15 +41,13 @@ router = APIRouter(
 speech_to_text_service = SpeechToTextService()
 text_to_speech_service = TextToSpeechService()
 
+APP_NAME = "Time To Teach"
+
 
 async def get_agent_service_request(request: Request) -> AgentRequestService:
     return AgentRequestService(
         agent_service=request.app.state.agent_service,
     )
-
-
-async def get_agent_service_streaming() -> AgentServiceStreaming:
-    return AgentServiceStreaming()
 
 
 class AgentRequest(BaseModel):
@@ -117,29 +132,38 @@ async def request_feedback(
     )
 
 
+async def get_agent_service_streaming() -> AgentServiceStreaming:
+    return AgentServiceStreaming()
+
+
 @router.websocket("/ws/{user_id}/{session_id}")
-async def agent_websocket(
+async def websocket_endpoint(
     websocket: WebSocket,
     user_id: str,
     session_id: str,
-    agent_service: AgentServiceStreaming = Depends(get_agent_service_streaming),
+    is_audio: str = "false",
 ):
+    """Client websocket endpoint"""
+    agent_service_streaming = AgentServiceStreaming(
+        agent_service=websocket.app.state.agent_service,
+    )
+    # Wait for client connection
     await websocket.accept()
     print(f"Client #{session_id} connected")
 
     # # Start agent session
-    _, live_events, live_request_queue = agent_service.start_agent_session(
-        user_id, session_id, streaming_root_agent
+    live_events, live_request_queue = await agent_service_streaming.start_agent_session(
+        user_id, session_id, "root_agent", is_audio
     )
 
     # Start agent to client messaging
     agent_to_client_task = asyncio.create_task(
-        agent_service.agent_to_client_messaging(websocket, live_events)
+        agent_service_streaming.agent_to_client_messaging(websocket, live_events)
     )
 
     # Start client to agent messaging
     client_to_agent_task = asyncio.create_task(
-        agent_service.client_to_agent_messaging(websocket, live_request_queue)
+        agent_service_streaming.client_to_agent_messaging(websocket, live_request_queue)
     )
 
     # Wait for both tasks to complete

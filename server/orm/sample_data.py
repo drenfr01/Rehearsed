@@ -13,7 +13,7 @@ from server.models.user_model import UserInDB
 
 # TODO: move these to the .env file
 PRO_MODEL = "gemini-2.5-pro"
-FLASH_MODEL = "gemini-2.5-flash"
+FLASH_MODEL = "gemini-live-2.5-flash-preview"
 
 
 def initialize_scenario_data(session: Session) -> None:
@@ -103,6 +103,7 @@ def load_agents(
                 tools=agent_data.get("tools", ""),
                 modules=agent_data.get("modules", ""),
                 sub_agent_ids=agent_data.get("sub_agent_ids", ""),
+                voice_name=agent_data.get("voice_name", "Aoede"),
             )
         )
         if agent_data.get("sub_agent_ids"):
@@ -144,6 +145,11 @@ def initialize_sample_agent_data():
         load_agents(
             "server/orm/overall_feedback_agent.yaml",
             model=FLASH_MODEL,
+            session=session,
+        )
+        load_agents(
+            "server/orm/streaming_student_agent.yaml",
+            model="gemini-2.0-flash-exp",
             session=session,
         )
 

@@ -54,6 +54,7 @@ class AgentPydantic(SQLModel, table=True):
     tools: str = Field(default="")
     modules: str = Field(default="")
     sub_agent_ids: str = Field(default="")
+    voice_name: str = Field(default="Aoede")
 
 
 class SubAgentLink(SQLModel, table=True):

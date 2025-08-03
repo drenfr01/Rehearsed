@@ -1,8 +1,12 @@
 from contextlib import asynccontextmanager
+import os
 
 from dotenv import load_dotenv
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import FileResponse
+from fastapi.staticfiles import StaticFiles
+from pathlib import Path
 
 # Note: dependencies matters, we need to import all models before creating the engine
 from server.dependencies.database import initialize_clean_db
@@ -39,6 +43,8 @@ async def lifespan(app: FastAPI):
 load_dotenv()
 
 app = FastAPI(lifespan=lifespan)
+STATIC_DIR = Path("server/static")
+app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 
 
 # Add CORS middleware
@@ -67,4 +73,4 @@ app.include_router(subagent_links_crud_router)
 
 @app.get("/")
 async def read_root():
-    return {"message": "Welcome to the Rehearsed app!"}
+    return FileResponse(os.path.join(STATIC_DIR, "index.html"))
