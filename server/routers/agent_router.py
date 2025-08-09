@@ -74,6 +74,7 @@ async def request_agent_response(
     user_id: str = Form(...),
     session_id: str = Form(...),
     audio: Optional[UploadFile] = File(None),
+    image: Optional[UploadFile] = File(None),
     agent_request_service: AgentRequestService = Depends(get_agent_service_request),
 ) -> JSONResponse:
     if audio:
@@ -89,6 +90,8 @@ async def request_agent_response(
         user_id,
         session_id,
         message,
+        image_content=(await image.read()) if image else None,
+        image_mime_type=image.content_type if image else None,
     )
 
     audio_content = await text_to_speech_service.text_to_speech(

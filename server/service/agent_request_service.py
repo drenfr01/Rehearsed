@@ -1,6 +1,7 @@
 from google.adk.artifacts import InMemoryArtifactService
 from google.adk.runners import LiveRequestQueue, RunConfig, Runner
 from google.genai import types
+from google.genai.types import Blob
 
 from server.models.agent_model import AgentResponse
 from server.service.agent_service import AgentService
@@ -19,9 +20,17 @@ class AgentRequestService:
         user_id: str,
         session_id: str,
         message: str,
+        image_content: bytes | None = None,
+        image_mime_type: str | None = None,
     ) -> AgentResponse:
         await self.initialize_runner(user_id, session_id, root_agent_name)
-        return await self.call_agent_async(message, user_id, session_id)
+        return await self.call_agent_async(
+            query=message,
+            user_id=user_id,
+            session_id=session_id,
+            image_content=image_content,
+            image_mime_type=image_mime_type,
+        )
 
     async def initialize_runner(
         self,
@@ -74,7 +83,12 @@ class AgentRequestService:
         return text_part.text
 
     async def call_agent_async(
-        self, query: str, user_id: str, session_id: str
+        self,
+        query: str,
+        user_id: str,
+        session_id: str,
+        image_content: bytes | None = None,
+        image_mime_type: str | None = None,
     ) -> AgentResponse:
         """Sends a query to the agent and prints the final response.
 
@@ -89,7 +103,14 @@ class AgentRequestService:
         event_author = None
         print(f"\n>>> User Query: {query}")
         # Prepare the user's message in ADK format
-        content = types.Content(role="user", parts=[types.Part(text=query)])
+        parts: list[types.Part] = [types.Part(text=query)]
+        if image_content and image_mime_type:
+            parts.append(
+                types.Part(
+                    inline_data=Blob(data=image_content, mime_type=image_mime_type)
+                )
+            )
+        content = types.Content(role="user", parts=parts)
 
         final_response_text = "Agent did not produce a final response."  # Default
 

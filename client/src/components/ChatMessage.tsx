@@ -19,6 +19,9 @@ export default function ChatMessage({ message }: { message: AgentResponse }) {
       if (audioUrl) {
         URL.revokeObjectURL(audioUrl);
       }
+      if (message.imageObjectUrl) {
+        URL.revokeObjectURL(message.imageObjectUrl);
+      }
       setIsPlaying(false);
     };
     // Only depend on message.message_id so it runs when the message changes or unmounts
@@ -100,6 +103,15 @@ export default function ChatMessage({ message }: { message: AgentResponse }) {
                     <div className="media-content">
                       <div className="content">
                         <ReactMarkdown>{message.content}</ReactMarkdown>
+                        {message.imageObjectUrl && (
+                          <figure className="image mt-2">
+                            <img
+                              src={message.imageObjectUrl}
+                              alt="Whiteboard attachment"
+                              style={{ maxWidth: "320px", borderRadius: 8 }}
+                            />
+                          </figure>
+                        )}
                       </div>
                     </div>
                   </>
