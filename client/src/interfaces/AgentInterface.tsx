@@ -4,6 +4,7 @@ export interface AgentRequest {
   sessionId: string;
   userId: string;
   audio?: Blob;
+  image?: Blob;
 }
 
 export interface AgentResponse {
@@ -13,6 +14,8 @@ export interface AgentResponse {
   message_id: string | null;
   audio?: string; // Base64 encoded audio data
   markdown_text?: string; // Markdown formatted feedback text
+  imageObjectUrl?: string; // Optional local URL for a user-attached image
+  imageDataUrl?: string; // Optional data URL for a user-attached image
 }
 
 export interface Agent {

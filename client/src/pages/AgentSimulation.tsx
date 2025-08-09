@@ -1,5 +1,6 @@
 import ChatMessage from "../components/ChatMessage";
 import ChatInput from "../components/ChatInput";
+import Whiteboard from "../components/Whiteboard";
 import SidePanel from "../components/SidePanel";
 import FeedbackPanel from "../components/FeedbackPanel";
 import {
@@ -9,7 +10,7 @@ import {
   useGetSessionContentQuery,
   usePostInlineFeedbackRequestMutation,
 } from "../store";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { AgentResponse } from "../interfaces/AgentInterface";
 import {
   ConversationResponse,
@@ -23,6 +24,7 @@ export default function AgentSimulation() {
   const [latestFeedback, setLatestFeedback] = useState<string>("");
   const [conversation, setConversation] = useState<AgentResponse[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [whiteboardBlob, setWhiteboardBlob] = useState<Blob | null>(null);
 
   const [createSession] = useCreateSessionMutation();
 
@@ -87,7 +89,7 @@ export default function AgentSimulation() {
     }
   };
 
-  const generateNewSessionId = async () => {
+  const generateNewSessionId = useCallback(async () => {
     try {
       console.log("Creating new session for user:", userId);
 
@@ -124,7 +126,7 @@ export default function AgentSimulation() {
       // Clear switching state since we've created the new session
       setIsLoading(false);
     }
-  };
+  }, [createSession, userId]);
 
   const handleSessionSelect = async (selectedSessionId: string) => {
     console.log("Session selection started:", selectedSessionId);
@@ -175,7 +177,7 @@ export default function AgentSimulation() {
       const sessionConversation = getConversationFromStorage(storedSessionId);
       setConversation(sessionConversation);
     }
-  }, []);
+  }, [generateNewSessionId]);
 
   const [postRequest, results] = usePostRequestMutation();
   const [provideOverallFeedback] = useProvideOverallFeedbackMutation({
@@ -193,13 +195,37 @@ export default function AgentSimulation() {
 
   // Add user message to conversation when they send a message
   const handleUserMessage = (message: string) => {
-    const userMessage: AgentResponse = {
+    const baseMessage: AgentResponse = {
       content: message,
       role: "user",
       author: "You",
       message_id: crypto.randomUUID(),
     };
-    const updatedConversation = [...conversation, userMessage];
+
+    // Prefer a stable data URL to avoid object URL timing/revocation issues
+    if (whiteboardBlob) {
+      try {
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          const dataUrl =
+            typeof reader.result === "string" ? reader.result : undefined;
+          const userMessage: AgentResponse = {
+            ...baseMessage,
+            imageDataUrl: dataUrl,
+          };
+          const updatedConversation = [...conversation, userMessage];
+          setConversation(updatedConversation);
+          // Save to localStorage
+          saveConversationToStorage(sessionId, updatedConversation);
+        };
+        reader.readAsDataURL(whiteboardBlob);
+        return; // We'll update state in onloadend
+      } catch (e) {
+        console.error("Failed to convert whiteboard blob to data URL:", e);
+      }
+    }
+
+    const updatedConversation = [...conversation, baseMessage];
     setConversation(updatedConversation);
     // Save to localStorage
     saveConversationToStorage(sessionId, updatedConversation);
@@ -285,6 +311,8 @@ export default function AgentSimulation() {
       sessionId={sessionId}
       onUserMessage={handleUserMessage}
       isLoading={results.isLoading || feedbackResults.isLoading}
+      whiteboardBlob={whiteboardBlob}
+      onClearWhiteboardImage={() => setWhiteboardBlob(null)}
     />
   );
 
@@ -327,6 +355,15 @@ export default function AgentSimulation() {
                       }
                     `}
                   </style>
+                  <div className="mb-4">
+                    <Whiteboard onSave={setWhiteboardBlob} />
+                    {whiteboardBlob && (
+                      <p className="mt-2 is-size-7 has-text-grey">
+                        Whiteboard image attached. It will be sent with your
+                        next message.
+                      </p>
+                    )}
+                  </div>
                   {message_content}
                 </div>
                 <hr className="my-4" />

@@ -15,6 +15,8 @@ interface ChatInputProps {
   sessionId: string;
   onUserMessage?: (message: string) => void;
   isLoading?: boolean;
+  whiteboardBlob?: Blob | null;
+  onClearWhiteboardImage?: () => void;
 }
 
 export default function ChatInput({
@@ -25,6 +27,8 @@ export default function ChatInput({
   sessionId,
   onUserMessage,
   isLoading = false,
+  whiteboardBlob = null,
+  onClearWhiteboardImage,
 }: ChatInputProps) {
   const [message, setMessage] = useState("");
   const [isRecording, setIsRecording] = useState(false);
@@ -82,6 +86,7 @@ export default function ChatInput({
       userId: userId,
       sessionId: sessionId,
       audio: audioBlob || undefined,
+      image: whiteboardBlob || undefined,
     });
 
     // Send the same message to the feedback agent
@@ -91,10 +96,12 @@ export default function ChatInput({
       userId: userId,
       sessionId: sessionId,
       audio: audioBlob || undefined,
+      image: whiteboardBlob || undefined,
     });
 
     setMessage("");
     setAudioBlob(null);
+    if (onClearWhiteboardImage) onClearWhiteboardImage();
   };
 
   const handleProvideUserFeedback = (

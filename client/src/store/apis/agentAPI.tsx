@@ -23,7 +23,7 @@ const agentAPI = createApi({
         },
       }),
       postRequest: builder.mutation<AgentResponse, AgentRequest>({
-        invalidatesTags: (result, error, arg) => [
+        invalidatesTags: (_result, _error, arg) => [
           { type: "Conversation", id: `${arg.userId}-${arg.sessionId}` },
         ],
         query: (agentRequest: AgentRequest) => {
@@ -35,6 +35,9 @@ const agentAPI = createApi({
 
           if (agentRequest.audio) {
             formData.append("audio", agentRequest.audio, "recording.webm");
+          }
+          if (agentRequest.image) {
+            formData.append("image", agentRequest.image, "whiteboard.png");
           }
 
           return {
@@ -67,7 +70,7 @@ const agentAPI = createApi({
         },
       }),
       fetchConversation: builder.query({
-        providesTags: (result, error, arg) => [
+        providesTags: (_result, _error, arg) => [
           { type: "Conversation", id: `${arg.userId}-${arg.sessionId}` },
         ],
         query: ({
@@ -127,6 +130,9 @@ const agentAPI = createApi({
 
           if (agentRequest.audio) {
             formData.append("audio", agentRequest.audio, "recording.webm");
+          }
+          if (agentRequest.image) {
+            formData.append("image", agentRequest.image, "whiteboard.png");
           }
 
           return {
