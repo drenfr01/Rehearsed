@@ -1,12 +1,26 @@
 import { Link, useNavigate } from "react-router-dom";
+import { useEffect } from "react";
 import { useGetCurrentUserQuery } from "../store/apis/authAPI";
 
 export default function Header() {
   const navigate = useNavigate();
   const { data: user } = useGetCurrentUserQuery();
 
+  useEffect(() => {
+    if (user) {
+      if (user.id != null) {
+        localStorage.setItem("userId", String(user.id));
+      }
+      if (user.username) {
+        localStorage.setItem("username", user.username);
+      }
+    }
+  }, [user]);
+
   const handleLogout = () => {
     localStorage.removeItem("token");
+    localStorage.removeItem("userId");
+    localStorage.removeItem("username");
     navigate("/login");
   };
 
