@@ -69,6 +69,7 @@ async def start_session(
 
 @router.post("/request")
 async def request_agent_response(
+    request: Request,
     agent_name: str = Form(...),
     message: str = Form(...),
     user_id: str = Form(...),
@@ -77,6 +78,12 @@ async def request_agent_response(
     image: Optional[UploadFile] = File(None),
     agent_request_service: AgentRequestService = Depends(get_agent_service_request),
 ) -> JSONResponse:
+    if request.app.state.agent_service.in_memory_agent_lookup is None:
+        return JSONResponse(
+            content={"error": "Agents not loaded, select a scenario first"},
+            status_code=500,
+        )
+
     if audio:
         audio_content = await audio.read()
         transcript = await speech_to_text_service.transcribe_audio(audio_content)
