@@ -28,7 +28,6 @@ class AgentService:
         # the agent CRUD routes to also call get_agents_from_database
         # to refresh the agents in memory when the DB is updated
         self.in_memory_agent_lookup: dict[str, InMemoryAgent] = None
-        self.get_agents_from_database()
 
     def get_agents_from_database(self, load_tools: bool = True) -> None:
         """Loads all agents in the database into memory with all of their sub agents.
@@ -44,7 +43,7 @@ class AgentService:
         # TODO: move this to ORM layer?
         session = next(get_session())
         statement = select(AgentPydantic).where(
-            AgentPydantic.scenario_id == self.scenario_service.scenario.id
+            AgentPydantic.scenario_id == self.scenario_service.get_current_scenario().id
         )
         agents_pydantic = session.exec(statement).all()
 
@@ -180,7 +179,7 @@ class AgentService:
         """
         agent_pydantic = agent_pydantic_lookup[agent_id]
         print(
-            f"Loading root agent for scenario {self.scenario_service.scenario.id} with agent name {agent_pydantic.name}"
+            f"Loading root agent for scenario {self.scenario_service.get_current_scenario().id} with agent name {agent_pydantic.name}"
         )
 
         print(f"Root agent: {agent_pydantic.name}")

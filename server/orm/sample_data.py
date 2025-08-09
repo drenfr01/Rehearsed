@@ -64,7 +64,7 @@ def initialize_sample_user_data() -> None:
 
 def load_agents(
     file_path: str,
-    scenario_id: int = 1,
+    default_scenario_id: int = 1,
     model: str = FLASH_MODEL,
     session: Session = None,
 ) -> list[AgentPydantic] | AgentPydantic:
@@ -73,7 +73,7 @@ def load_agents(
 
     Args:
         file_path: Path to the YAML file containing agent data
-        scenario_id: ID of the scenario the agent(s) belong to
+        default_scenario_id: ID of the scenario the agent(s) belong to
         model: Model to use for the agent(s)
         session: Session to use for the agent(s)
 
@@ -93,7 +93,7 @@ def load_agents(
         agents.append(
             AgentPydantic(
                 id=agent_id,
-                scenario_id=scenario_id,
+                scenario_id=agent_data.get("scenario_id", default_scenario_id),
                 name=agent_data["name"],
                 instruction=agent_data["instruction"],
                 description=agent_data["description"],
@@ -139,6 +139,16 @@ def initialize_sample_agent_data():
         )
         load_agents(
             "server/orm/root_agent.yaml",
+            model=FLASH_MODEL,
+            session=session,
+        )
+        load_agents(
+            "server/orm/whiteboard_root_agent.yaml",
+            model=FLASH_MODEL,
+            session=session,
+        )
+        load_agents(
+            "server/orm/whiteboard_inline_feedback_agent.yaml",
             model=FLASH_MODEL,
             session=session,
         )

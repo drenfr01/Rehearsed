@@ -6,13 +6,7 @@ from server.models.agent_model import Scenario
 
 class ScenarioService:
     def __init__(self, default_scenario_id: int = 1):
-        self.scenario = self._load_initial_scenario(default_scenario_id)
-
-    def _load_initial_scenario(self, default_scenario_id: int) -> Scenario:
-        with Session(engine) as session:
-            statement = select(Scenario).where(Scenario.id == default_scenario_id)
-            scenario = session.exec(statement).one()
-            return scenario
+        self.scenario = None
 
     def get_current_scenario(self) -> Scenario:
         """
