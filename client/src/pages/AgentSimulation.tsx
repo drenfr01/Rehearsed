@@ -17,8 +17,8 @@ import {
 } from "../interfaces/SessionInterface";
 
 export default function AgentSimulation() {
-  // TODO: these will be set by user login
-  const userId = "18";
+  // Set by user login
+  const userId = localStorage.getItem("userId") || "";
   const [sessionId, setSessionId] = useState<string>("");
   const [latestFeedback, setLatestFeedback] = useState<string>("");
   const [conversation, setConversation] = useState<AgentResponse[]>([]);

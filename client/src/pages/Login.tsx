@@ -1,11 +1,13 @@
 import { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useLoginMutation } from "../store";
+import { useLazyGetCurrentUserQuery } from "../store/apis/authAPI";
 
 const Login = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [login, { isLoading, error }] = useLoginMutation();
+  const [getCurrentUser] = useLazyGetCurrentUserQuery();
   const [formData, setFormData] = useState({
     username: "",
     password: "",
@@ -17,6 +19,20 @@ const Login = () => {
       const response = await login(formData).unwrap();
       // Store the token in localStorage
       localStorage.setItem("token", response.access_token);
+
+      // Fetch and store user details (id and username)
+      try {
+        const user = await getCurrentUser().unwrap();
+        if (user?.id != null) {
+          localStorage.setItem("userId", String(user.id));
+        }
+        if (user?.username) {
+          localStorage.setItem("username", user.username);
+        }
+      } catch (e) {
+        console.error("Failed to fetch current user after login:", e);
+      }
+
       // Redirect to the originally requested page or home
       const from = location.state?.from?.pathname || "/";
       navigate(from, { replace: true });

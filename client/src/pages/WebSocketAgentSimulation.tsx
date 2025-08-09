@@ -18,7 +18,7 @@ interface WebSocketMessage {
 const sessionId = Math.floor(Math.random() * 1000000).toString();
 
 export default function WebSocketAgentSimulation() {
-  const userId = "1";
+  const userId = localStorage.getItem("userId") || "";
   const [messages, setMessages] = useState<string[]>([]);
   const [inputMessage, setInputMessage] = useState("");
   const [isConnected, setIsConnected] = useState(false);

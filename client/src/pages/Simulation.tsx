@@ -10,7 +10,7 @@ import {
 import { useEffect, useState } from "react";
 
 export default function Simulation() {
-  const userId = "1"; // TODO: Get from auth context
+  const userId = localStorage.getItem("userId") || "";
   const [sessionId, setSessionId] = useState<string>("");
 
   useEffect(() => {
