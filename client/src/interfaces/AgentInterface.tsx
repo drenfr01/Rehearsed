@@ -15,6 +15,7 @@ export interface AgentResponse {
   audio?: string; // Base64 encoded audio data
   markdown_text?: string; // Markdown formatted feedback text
   imageObjectUrl?: string; // Optional local URL for a user-attached image
+  imageDataUrl?: string; // Optional data URL for a user-attached image
 }
 
 export interface Agent {

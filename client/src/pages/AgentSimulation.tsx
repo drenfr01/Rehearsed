@@ -195,16 +195,37 @@ export default function AgentSimulation() {
 
   // Add user message to conversation when they send a message
   const handleUserMessage = (message: string) => {
-    const userMessage: AgentResponse = {
+    const baseMessage: AgentResponse = {
       content: message,
       role: "user",
       author: "You",
       message_id: crypto.randomUUID(),
-      imageObjectUrl: whiteboardBlob
-        ? URL.createObjectURL(whiteboardBlob)
-        : undefined,
     };
-    const updatedConversation = [...conversation, userMessage];
+
+    // Prefer a stable data URL to avoid object URL timing/revocation issues
+    if (whiteboardBlob) {
+      try {
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          const dataUrl =
+            typeof reader.result === "string" ? reader.result : undefined;
+          const userMessage: AgentResponse = {
+            ...baseMessage,
+            imageDataUrl: dataUrl,
+          };
+          const updatedConversation = [...conversation, userMessage];
+          setConversation(updatedConversation);
+          // Save to localStorage
+          saveConversationToStorage(sessionId, updatedConversation);
+        };
+        reader.readAsDataURL(whiteboardBlob);
+        return; // We'll update state in onloadend
+      } catch (e) {
+        console.error("Failed to convert whiteboard blob to data URL:", e);
+      }
+    }
+
+    const updatedConversation = [...conversation, baseMessage];
     setConversation(updatedConversation);
     // Save to localStorage
     saveConversationToStorage(sessionId, updatedConversation);

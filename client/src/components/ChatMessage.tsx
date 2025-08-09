@@ -8,24 +8,35 @@ export default function ChatMessage({ message }: { message: AgentResponse }) {
   const [audioUrl, setAudioUrl] = useState<string | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const lastAudioUrlRef = useRef<string | null>(null);
 
-  // Cleanup effect: only revoke URL if the message changes or component unmounts
+  // Pause audio when this ChatMessage switches to a different message
   useEffect(() => {
     return () => {
       if (audioRef.current) {
         audioRef.current.pause();
         audioRef.current = null;
       }
-      if (audioUrl) {
-        URL.revokeObjectURL(audioUrl);
+      setIsPlaying(false);
+    };
+  }, [message.message_id]);
+
+  // On unmount, revoke any blob URLs that might still be alive
+  useEffect(() => {
+    return () => {
+      if (audioRef.current) {
+        audioRef.current.pause();
+      }
+      if (lastAudioUrlRef.current) {
+        URL.revokeObjectURL(lastAudioUrlRef.current);
+        lastAudioUrlRef.current = null;
       }
       if (message.imageObjectUrl) {
         URL.revokeObjectURL(message.imageObjectUrl);
       }
-      setIsPlaying(false);
     };
-    // Only depend on message.message_id so it runs when the message changes or unmounts
-  }, [message.message_id]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const playAudio = () => {
     if (isPlaying && audioRef.current) {
@@ -52,6 +63,7 @@ export default function ChatMessage({ message }: { message: AgentResponse }) {
         const blob = new Blob([byteArray], { type: "audio/mp3" });
         const url = URL.createObjectURL(blob);
         setAudioUrl(url);
+        lastAudioUrlRef.current = url;
 
         if (audioRef.current) {
           audioRef.current.pause();
@@ -64,11 +76,17 @@ export default function ChatMessage({ message }: { message: AgentResponse }) {
           setIsPlaying(false);
           URL.revokeObjectURL(url);
           setAudioUrl(null);
+          if (lastAudioUrlRef.current === url) {
+            lastAudioUrlRef.current = null;
+          }
         };
         audio.onerror = () => {
           setIsPlaying(false);
           URL.revokeObjectURL(url);
           setAudioUrl(null);
+          if (lastAudioUrlRef.current === url) {
+            lastAudioUrlRef.current = null;
+          }
         };
         audio.play().then(() => setIsPlaying(true));
       } catch (error) {
@@ -103,12 +121,23 @@ export default function ChatMessage({ message }: { message: AgentResponse }) {
                     <div className="media-content">
                       <div className="content">
                         <ReactMarkdown>{message.content}</ReactMarkdown>
-                        {message.imageObjectUrl && (
+                        {(message.imageDataUrl || message.imageObjectUrl) && (
                           <figure className="image mt-2">
                             <img
-                              src={message.imageObjectUrl}
+                              src={
+                                message.imageDataUrl || message.imageObjectUrl
+                              }
                               alt="Whiteboard attachment"
-                              style={{ maxWidth: "320px", borderRadius: 8 }}
+                              style={{
+                                maxWidth: "320px",
+                                maxHeight: "240px",
+                                width: "100%",
+                                height: "auto",
+                                borderRadius: 8,
+                                objectFit: "contain",
+                                background: "#fff",
+                                boxShadow: "0 1px 2px rgba(0,0,0,0.08)",
+                              }}
                             />
                           </figure>
                         )}
